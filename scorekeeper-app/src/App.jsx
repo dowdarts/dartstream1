@@ -1501,10 +1501,8 @@ function App() {
                   setTurnNumber(1);
                   setHomeEnteredGame(false);
                   setAwayEnteredGame(false);
-                  // Alternate starting player based on total completed legs across all sets
-                  // Use initialStartingPlayer as the base and alternate based on total legs played
-                  const totalCompletedLegs = (sets.home + sets.away) * getRequiredLegs();
-                  const nextStarter = (totalCompletedLegs % 2 === 0) ? initialStartingPlayer : (initialStartingPlayer === 'home' ? 'away' : 'home');
+                  // Always alternate starting player when continuing to a new set
+                  const nextStarter = startingPlayer === 'home' ? 'away' : 'home';
                   setCurrentPlayer(nextStarter);
                   setStartingPlayer(nextStarter);
                   // Show first throw message
