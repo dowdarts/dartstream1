@@ -28,6 +28,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: scale(0.8);
+  transform: scale(0.5);
   transform-origin: center;
 }
