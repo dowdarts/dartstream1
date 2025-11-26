@@ -1401,38 +1401,40 @@ function App() {
                 CHANGE PLAYERS
               </button>
 
-              {/* Next Set Button - only show if sets are configured */}
-              {setsCount > 0 && (
-                <button
-                  onClick={() => {
-                    setShowMatchWin(false);
-                    setMatchWinner(null);
-                    // Award set to winner
-                    if (matchWinner === 'home') {
-                      setSets({ ...sets, home: sets.home + 1 });
-                    } else {
-                      setSets({ ...sets, away: sets.away + 1 });
-                    }
-                    // Reset leg scores
-                    setLegs({ home: 0, away: 0 });
-                    // Reset game scores
-                    setHomeScore(startingScore);
-                    setAwayScore(startingScore);
-                    setHomeDartsThrown(0);
-                    setAwayDartsThrown(0);
-                    setScoreLog([]);
-                    setTurnNumber(1);
-                    setHomeEnteredGame(false);
-                    setAwayEnteredGame(false);
-                    // Switch starting player for next set
-                    setCurrentPlayer(currentPlayer === 'home' ? 'away' : 'home');
-                    setStartingPlayer(startingPlayer === 'home' ? 'away' : 'home');
-                  }}
-                  className="w-full bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-2xl font-black py-4 px-8 rounded-lg shadow-lg transition-all active:scale-95"
-                >
-                  NEXT SET
-                </button>
-              )}
+              {/* Next Set Button - always show, allows continuing match as sets */}
+              <button
+                onClick={() => {
+                  setShowMatchWin(false);
+                  setMatchWinner(null);
+                  // Award set to winner
+                  if (matchWinner === 'home') {
+                    setSets({ ...sets, home: sets.home + 1 });
+                  } else {
+                    setSets({ ...sets, away: sets.away + 1 });
+                  }
+                  // Reset leg scores
+                  setLegs({ home: 0, away: 0 });
+                  // Reset game scores
+                  setHomeScore(startingScore);
+                  setAwayScore(startingScore);
+                  setHomeDartsThrown(0);
+                  setAwayDartsThrown(0);
+                  setHomeMatchDarts(0);
+                  setAwayMatchDarts(0);
+                  setHomeMatchScore(0);
+                  setAwayMatchScore(0);
+                  setScoreLog([]);
+                  setTurnNumber(1);
+                  setHomeEnteredGame(false);
+                  setAwayEnteredGame(false);
+                  // Switch starting player for next set
+                  setCurrentPlayer(currentPlayer === 'home' ? 'away' : 'home');
+                  setStartingPlayer(startingPlayer === 'home' ? 'away' : 'home');
+                }}
+                className="w-full bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-2xl font-black py-4 px-8 rounded-lg shadow-lg transition-all active:scale-95"
+              >
+                NEXT SET
+              </button>
 
               {/* End Match Button */}
               <button
