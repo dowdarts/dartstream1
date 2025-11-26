@@ -1346,7 +1346,7 @@ function App() {
       {/* Match Winner Modal */}
       {showMatchWin && (
         <div className="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
-          <div className="bg-gradient-to-b from-yellow-500 to-yellow-600 p-12 rounded-xl shadow-2xl border-8 border-yellow-300">
+          <div className="bg-gradient-to-b from-yellow-500 to-yellow-600 p-12 rounded-xl shadow-2xl border-8 border-yellow-300 max-w-2xl">
             <h1 className="text-7xl font-black text-black mb-8 text-center animate-pulse">
               🏆 MATCH WINNER! 🏆
             </h1>
@@ -1360,29 +1360,103 @@ function App() {
                 <p>Sets: {matchWinner === 'home' ? sets.home : sets.away} - {matchWinner === 'home' ? sets.away : sets.home}</p>
               )}
             </div>
-            <button
-              onClick={() => {
-                setShowMatchWin(false);
-                setGameStarted(false);
-                // Reset all game state
-                setLegs({ home: 0, away: 0 });
-                setSets({ home: 0, away: 0 });
-                setHomeScore(startingScore);
-                setAwayScore(startingScore);
-                setHomeDartsThrown(0);
-                setAwayDartsThrown(0);
-                setHomeMatchDarts(0);
-                setAwayMatchDarts(0);
-                setHomeMatchScore(0);
-                setAwayMatchScore(0);
-                setScoreLog([]);
-                setTurnNumber(1);
-                setMatchWinner(null);
-              }}
-              className="w-full bg-gradient-to-b from-black to-gray-900 hover:from-gray-900 hover:to-black text-yellow-400 text-3xl font-black py-6 px-12 rounded-lg shadow-lg transition-all active:scale-95"
-            >
-              NEW MATCH
-            </button>
+            <div className="space-y-4">
+              {/* Change Players Button */}
+              <button
+                onClick={() => {
+                  setShowMatchWin(false);
+                  setMatchWinner(null);
+                  // Go back to name entry but keep game settings
+                  setGameStarted(false);
+                  setSetupComplete(false);
+                  setNamesEntered(false);
+                  // Reset scores and stats
+                  setLegs({ home: 0, away: 0 });
+                  setSets({ home: 0, away: 0 });
+                  setHomeScore(startingScore);
+                  setAwayScore(startingScore);
+                  setHomeDartsThrown(0);
+                  setAwayDartsThrown(0);
+                  setHomeMatchDarts(0);
+                  setAwayMatchDarts(0);
+                  setHomeMatchScore(0);
+                  setAwayMatchScore(0);
+                  setScoreLog([]);
+                  setTurnNumber(1);
+                  setHomeEnteredGame(false);
+                  setAwayEnteredGame(false);
+                }}
+                className="w-full bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-2xl font-black py-4 px-8 rounded-lg shadow-lg transition-all active:scale-95"
+              >
+                CHANGE PLAYERS
+              </button>
+
+              {/* Next Set Button - only show if sets are configured */}
+              {setsCount > 0 && (
+                <button
+                  onClick={() => {
+                    setShowMatchWin(false);
+                    setMatchWinner(null);
+                    // Award set to winner
+                    if (matchWinner === 'home') {
+                      setSets({ ...sets, home: sets.home + 1 });
+                    } else {
+                      setSets({ ...sets, away: sets.away + 1 });
+                    }
+                    // Reset leg scores
+                    setLegs({ home: 0, away: 0 });
+                    // Reset game scores
+                    setHomeScore(startingScore);
+                    setAwayScore(startingScore);
+                    setHomeDartsThrown(0);
+                    setAwayDartsThrown(0);
+                    setScoreLog([]);
+                    setTurnNumber(1);
+                    setHomeEnteredGame(false);
+                    setAwayEnteredGame(false);
+                    // Switch starting player for next set
+                    setCurrentPlayer(currentPlayer === 'home' ? 'away' : 'home');
+                    setStartingPlayer(startingPlayer === 'home' ? 'away' : 'home');
+                  }}
+                  className="w-full bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-2xl font-black py-4 px-8 rounded-lg shadow-lg transition-all active:scale-95"
+                >
+                  NEXT SET
+                </button>
+              )}
+
+              {/* End Match Button */}
+              <button
+                onClick={() => {
+                  setShowMatchWin(false);
+                  setMatchWinner(null);
+                  // Reset everything back to welcome page
+                  setWelcomePageShown(false);
+                  setPresetSelected(false);
+                  setNamesEntered(false);
+                  setSetupComplete(false);
+                  setGameStarted(false);
+                  setLegs({ home: 0, away: 0 });
+                  setSets({ home: 0, away: 0 });
+                  setHomeScore(startingScore);
+                  setAwayScore(startingScore);
+                  setHomeDartsThrown(0);
+                  setAwayDartsThrown(0);
+                  setHomeMatchDarts(0);
+                  setAwayMatchDarts(0);
+                  setHomeMatchScore(0);
+                  setAwayMatchScore(0);
+                  setScoreLog([]);
+                  setTurnNumber(1);
+                  setHomeEnteredGame(false);
+                  setAwayEnteredGame(false);
+                  setHomePlayerName('Home');
+                  setAwayPlayerName('Away');
+                }}
+                className="w-full bg-gradient-to-b from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-2xl font-black py-4 px-8 rounded-lg shadow-lg transition-all active:scale-95"
+              >
+                END MATCH
+              </button>
+            </div>
           </div>
         </div>
       )}
