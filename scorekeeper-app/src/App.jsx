@@ -109,17 +109,38 @@ function App() {
   const handleNumberClick = (num) => {
     if (editingScore?.firstEdit) {
       // In edit mode, first click replaces the entire value
-      setCurrentThrow(String(num));
-      setEditingScore({ ...editingScore, firstEdit: false });
+      const newValue = String(num);
+      // Only allow if it's 0-180
+      if (parseInt(newValue) <= 180) {
+        setCurrentThrow(newValue);
+        setEditingScore({ ...editingScore, firstEdit: false });
+      }
     } else {
-      setCurrentThrow(prev => prev + String(num));
+      const newValue = currentThrow + String(num);
+      // Parse the value to check if it's valid
+      // Check for addition expressions (e.g., "60+60")
+      if (newValue.includes('+')) {
+        const parts = newValue.split('+');
+        const sum = parts.reduce((acc, part) => acc + (parseInt(part) || 0), 0);
+        if (sum <= 180) {
+          setCurrentThrow(newValue);
+        }
+      } else {
+        // Simple number, check if it's 0-180
+        if (parseInt(newValue) <= 180) {
+          setCurrentThrow(newValue);
+        }
+      }
     }
   };
 
   const handleMultiply = () => {
     if (currentThrow) {
       const multiplied = parseInt(currentThrow) * 3;
-      setCurrentThrow(multiplied.toString());
+      // Only allow multiplication if result is 0-180
+      if (multiplied <= 180) {
+        setCurrentThrow(multiplied.toString());
+      }
     }
   };
 
