@@ -1505,6 +1505,8 @@ function App() {
                   const nextStarter = startingPlayer === 'home' ? 'away' : 'home';
                   setCurrentPlayer(nextStarter);
                   setStartingPlayer(nextStarter);
+                  // Update initialStartingPlayer for the new set so legs within the set alternate correctly
+                  setInitialStartingPlayer(nextStarter);
                   // Show first throw message
                   const firstPlayerName = nextStarter === 'home' ? homePlayer : awayPlayer;
                   setFirstThrowMessage(`${firstPlayerName} to throw first`);
