@@ -1070,8 +1070,8 @@ function App() {
   }
 
   return (
-    <div className="h-screen bg-black flex items-center justify-center p-0 m-0">
-      <div className="w-full h-screen bg-black text-white flex flex-col shadow-2xl max-w-4xl">
+    <div className="min-h-screen bg-black flex items-center justify-center p-0 m-0">
+      <div className="w-full max-h-screen bg-black text-white flex flex-col shadow-2xl max-w-4xl overflow-auto">
       {/* Ton popup */}
       {tonMessage && (
         <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-black px-16 py-12 rounded-2xl shadow-2xl text-9xl font-black z-50 animate-fade-in border-8 border-black">
