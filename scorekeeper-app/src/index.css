@@ -25,10 +25,37 @@ body {
 
 #root {
   width: 100%;
+  max-width: 100vw;
+  height: 100vh;
   min-height: 100vh;
-  min-height: -webkit-fill-available;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* Phone: 360x390 */
+@media (max-width: 480px) {
+  #root {
+    max-width: 360px;
+    max-height: 390px;
+  }
+}
+
+/* Tablet: 768x810 */
+@media (min-width: 481px) and (max-width: 1024px) {
+  #root {
+    max-width: 768px;
+    max-height: 810px;
+  }
+}
+
+/* Desktop: 1366x1920 */
+@media (min-width: 1025px) {
+  #root {
+    max-width: 1366px;
+    max-height: 1920px;
+  }
 }
