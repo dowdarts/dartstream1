@@ -599,21 +599,16 @@ function App() {
     setHomeEnteredGame(false);
     setAwayEnteredGame(false);
     
-    // If a set was won, switch starting player
+    // Always switch starting player after every leg
+    const nextStarter = startingPlayer === 'home' ? 'away' : 'home';
+    setStartingPlayer(nextStarter);
+    setCurrentPlayer(nextStarter);
+    
+    // Show first throw message if a set was won
     if (setWasWon) {
-      const nextStarter = startingPlayer === 'home' ? 'away' : 'home';
-      setCurrentPlayer(nextStarter);
-      setStartingPlayer(nextStarter);
-      // Show first throw message
       const firstPlayerName = nextStarter === 'home' ? homePlayer : awayPlayer;
       setFirstThrowMessage(`${firstPlayerName} to throw first`);
       setTimeout(() => setFirstThrowMessage(""), 3000);
-    } else {
-      // Alternate starting player for next leg based on total legs completed
-      const totalCompletedLegs = legs.home + legs.away;
-      const nextStarter = (totalCompletedLegs % 2 === 0) ? initialStartingPlayer : (initialStartingPlayer === 'home' ? 'away' : 'home');
-      setStartingPlayer(nextStarter);
-      setCurrentPlayer(nextStarter);
     }
   };
 
