@@ -704,7 +704,7 @@ function App() {
       <div className="h-screen bg-black flex items-center justify-center p-4">
         <div className="bg-gradient-to-b from-gray-800 to-gray-900 p-12 rounded-xl shadow-2xl border-4 border-yellow-400 max-w-3xl w-full">
           <div className="flex flex-col items-center mb-10">
-            <img src="/dartstream-logo.png" alt="DartStream" className="w-72 h-auto mb-6" />
+            <img src="dartstream-logo.png" alt="DartStream" className="w-72 h-auto mb-6" />
             <h1 className="text-6xl font-black text-yellow-400 text-center mb-2">Welcome to</h1>
             <h2 className="text-7xl font-black text-white text-center">DartStream</h2>
           </div>
@@ -770,7 +770,7 @@ function App() {
       <div className="h-screen bg-black flex items-center justify-center p-4">
         <div className="bg-gradient-to-b from-gray-800 to-gray-900 p-12 rounded-xl shadow-2xl border-4 border-yellow-400 max-w-2xl w-full">
           <div className="flex flex-col items-center mb-8">
-            <img src="/dartstream-logo.png" alt="DartStream" className="w-64 h-auto mb-4" />
+            <img src="dartstream-logo.png" alt="DartStream" className="w-64 h-auto mb-4" />
             <h1 className="text-6xl font-black text-yellow-400 text-center">Player Names</h1>
           </div>
           
@@ -986,7 +986,7 @@ function App() {
       <div className="h-screen bg-black flex items-center justify-center p-4">
         <div className="bg-gradient-to-b from-gray-800 to-gray-900 p-12 rounded-xl shadow-2xl border-4 border-yellow-400 max-w-2xl w-full">
           <div className="flex flex-col items-center mb-8">
-            <img src="/dartstream-logo.png" alt="DartStream" className="w-48 h-auto mb-4" />
+            <img src="dartstream-logo.png" alt="DartStream" className="w-48 h-auto mb-4" />
             <h1 className="text-5xl font-black text-yellow-400 text-center">Who Starts?</h1>
           </div>
 
@@ -1108,7 +1108,7 @@ function App() {
 
         {/* Center - Logo Area */}
         <div className="bg-black flex flex-col items-center justify-center p-4 border-r-2 border-black">
-          <img src="/dartstream-logo.png" alt="DartStream" className="w-48 h-auto" />
+          <img src="dartstream-logo.png" alt="DartStream" className="w-48 h-auto" />
           <div className="text-gray-500 text-sm mt-2 font-semibold">v1.0.0</div>
           <div className="text-gray-400 text-base mt-2 font-bold text-center">
             {gameType} {setsCount > 0 && `${setsFormat === 'best-of' ? 'Best of' : 'Play All'} ${setsCount} ${setsCount === 1 ? 'Set' : 'Sets'}`}
