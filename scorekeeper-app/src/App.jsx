@@ -609,8 +609,11 @@ function App() {
       setFirstThrowMessage(`${firstPlayerName} to throw first`);
       setTimeout(() => setFirstThrowMessage(""), 3000);
     } else {
-      // Same starting player for new leg (no set won)
-      setCurrentPlayer(startingPlayer);
+      // Alternate starting player for next leg based on total legs completed
+      const totalCompletedLegs = legs.home + legs.away;
+      const nextStarter = (totalCompletedLegs % 2 === 0) ? initialStartingPlayer : (initialStartingPlayer === 'home' ? 'away' : 'home');
+      setStartingPlayer(nextStarter);
+      setCurrentPlayer(nextStarter);
     }
   };
 
