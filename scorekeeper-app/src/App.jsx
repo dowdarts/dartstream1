@@ -1171,31 +1171,31 @@ function App() {
         </div>
       )}
       {/* Header - Player Scores */}
-      <div className="grid grid-cols-3 gap-0">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
         {/* Home Player */}
-        <div className={`p-8 flex flex-col items-center justify-center border-r-2 border-black transition-all relative ${
+        <div className={`p-4 md:p-8 flex flex-col items-center justify-center border-r-2 md:border-r-2 border-b-2 md:border-b-0 border-black transition-all relative ${
           currentPlayer === 'home' 
             ? 'bg-white ring-4 ring-yellow-400 ring-inset' 
             : 'bg-gray-700 opacity-60'
         }`}>
           {startingPlayer === 'home' && (
-            <div className="absolute top-4 right-4 w-6 h-6 rounded-full bg-green-500 border-2 border-white"></div>
+            <div className="absolute top-2 md:top-4 right-2 md:right-4 w-4 md:w-6 h-4 md:h-6 rounded-full bg-green-500 border-2 border-white"></div>
           )}
-          <div className={`text-6xl font-black mb-6 tracking-wide ${currentPlayer === 'home' ? 'text-black' : 'text-white'}`}>{homePlayer}</div>
-          <div className="flex flex-col items-center gap-2">
-            <span className={`text-9xl font-black tracking-tight ${currentPlayer === 'home' ? 'text-black' : 'text-white'}`}>{currentPlayer === 'home' && currentThrow ? homeScore - evaluateExpression(currentThrow) : homeScore}</span>
+          <div className={`text-3xl md:text-6xl font-black mb-2 md:mb-6 tracking-wide ${currentPlayer === 'home' ? 'text-black' : 'text-white'}`}>{homePlayer}</div>
+          <div className="flex flex-col items-center gap-1 md:gap-2">
+            <span className={`text-5xl md:text-9xl font-black tracking-tight ${currentPlayer === 'home' ? 'text-black' : 'text-white'}`}>{currentPlayer === 'home' && currentThrow ? homeScore - evaluateExpression(currentThrow) : homeScore}</span>
             <div className="flex flex-col items-center">
-              <span className={`text-2xl font-bold ${currentPlayer === 'home' ? 'text-gray-700' : 'text-gray-300'}`}>Leg: {homeLegAverage}</span>
-              <span className={`text-lg font-semibold ${currentPlayer === 'home' ? 'text-gray-600' : 'text-gray-200'} opacity-80`}>Match: {homeMatchAverage}</span>
+              <span className={`text-lg md:text-2xl font-bold ${currentPlayer === 'home' ? 'text-gray-700' : 'text-gray-300'}`}>Leg: {homeLegAverage}</span>
+              <span className={`text-sm md:text-lg font-semibold ${currentPlayer === 'home' ? 'text-gray-600' : 'text-gray-200'} opacity-80`}>Match: {homeMatchAverage}</span>
             </div>
           </div>
         </div>
 
         {/* Center - Logo Area */}
-        <div className="bg-black flex flex-col items-center justify-center p-4 border-r-2 border-black">
-          <img src="dartstream-logo.png" alt="DartStream" className="w-48 h-auto" />
-          <div className="text-gray-500 text-sm mt-2 font-semibold">v1.0.0</div>
-          <div className="text-gray-400 text-base mt-2 font-bold text-center">
+        <div className="bg-black flex flex-col items-center justify-center p-2 md:p-4 border-r-2 md:border-r-2 border-b-2 md:border-b-0 border-black">
+          <img src="dartstream-logo.png" alt="DartStream" className="w-24 md:w-48 h-auto" />
+          <div className="text-gray-500 text-xs md:text-sm mt-1 md:mt-2 font-semibold">v1.0.0</div>
+          <div className="text-gray-400 text-xs md:text-base mt-1 md:mt-2 font-bold text-center">
             {gameType} {setsCount > 0 && `${setsFormat === 'best-of' ? 'Best of' : 'Play All'} ${setsCount} ${setsCount === 1 ? 'Set' : 'Sets'}`}
             {setsCount > 0 && ' - '}
             {legsFormat === 'best-of' ? 'Best of' : 'Play All'} {legsCount} {legsCount === 1 ? 'Leg' : 'Legs'}
@@ -1203,20 +1203,20 @@ function App() {
         </div>
 
         {/* Away Player */}
-        <div className={`p-8 flex flex-col items-center justify-center transition-all relative ${
+        <div className={`p-4 md:p-8 flex flex-col items-center justify-center transition-all relative ${
           currentPlayer === 'away' 
             ? 'bg-white ring-4 ring-yellow-400 ring-inset' 
             : 'bg-gradient-to-b from-gray-800 to-gray-900 opacity-60'
         }`}>
           {startingPlayer === 'away' && (
-            <div className="absolute top-4 left-4 w-6 h-6 rounded-full bg-green-500 border-2 border-white"></div>
+            <div className="absolute top-2 md:top-4 left-2 md:left-4 w-4 md:w-6 h-4 md:h-6 rounded-full bg-green-500 border-2 border-white"></div>
           )}
-          <div className={`text-6xl font-black mb-6 tracking-wide ${currentPlayer === 'away' ? 'text-gray-800' : 'text-white'}`}>{awayPlayer}</div>
-          <div className="flex flex-col items-center gap-2">
-            <span className={`text-9xl font-black tracking-tight ${currentPlayer === 'away' ? 'text-gray-800' : 'text-white'}`}>{currentPlayer === 'away' && currentThrow ? awayScore - evaluateExpression(currentThrow) : awayScore}</span>
+          <div className={`text-3xl md:text-6xl font-black mb-2 md:mb-6 tracking-wide ${currentPlayer === 'away' ? 'text-gray-800' : 'text-white'}`}>{awayPlayer}</div>
+          <div className="flex flex-col items-center gap-1 md:gap-2">
+            <span className={`text-5xl md:text-9xl font-black tracking-tight ${currentPlayer === 'away' ? 'text-gray-800' : 'text-white'}`}>{currentPlayer === 'away' && currentThrow ? awayScore - evaluateExpression(currentThrow) : awayScore}</span>
             <div className="flex flex-col items-center">
-              <span className={`text-2xl font-bold ${currentPlayer === 'away' ? 'text-gray-600' : 'text-gray-400'}`}>Leg: {awayLegAverage}</span>
-              <span className={`text-lg font-semibold ${currentPlayer === 'away' ? 'text-gray-500' : 'text-gray-300'} opacity-80`}>Match: {awayMatchAverage}</span>
+              <span className={`text-lg md:text-2xl font-bold ${currentPlayer === 'away' ? 'text-gray-600' : 'text-gray-400'}`}>Leg: {awayLegAverage}</span>
+              <span className={`text-sm md:text-lg font-semibold ${currentPlayer === 'away' ? 'text-gray-500' : 'text-gray-300'} opacity-80`}>Match: {awayMatchAverage}</span>
             </div>
           </div>
         </div>
