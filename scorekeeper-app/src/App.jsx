@@ -547,15 +547,11 @@ function App() {
       }
     }
 
-    // Check for match winner
-    const winner = checkMatchWinner(newHomeSets, newAwaySets, newHomeLegs, newAwayLegs);
-    if (winner) {
-      setMatchWinner(winner);
-      setShowMatchWin(true);
-      setShowWinConfirm(false);
-    } else {
-      resetLeg();
-    }
+    // Always show match winner screen after a leg is won
+    // Match never ends automatically - only when user clicks "END MATCH"
+    setMatchWinner(winningPlayer);
+    setShowMatchWin(true);
+    setShowWinConfirm(false);
   };
 
   const flipCoin = () => {
@@ -1358,31 +1354,33 @@ function App() {
         <div className="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
           <div className="bg-gradient-to-b from-yellow-500 to-yellow-600 p-12 rounded-xl shadow-2xl border-8 border-yellow-300 max-w-2xl">
             <h1 className="text-7xl font-black text-black mb-8 text-center animate-pulse">
-              🏆 MATCH WINNER! 🏆
+              🏆 LEG WINNER! 🏆
             </h1>
             <h2 className="text-6xl font-black text-black mb-8 text-center">
               {matchWinner === 'home' ? homePlayer : awayPlayer}
             </h2>
             <div className="text-3xl font-bold text-black mb-8 text-center">
-              {setsCount === 0 ? (
-                <p>Legs: {matchWinner === 'home' ? legs.home : legs.away} - {matchWinner === 'home' ? legs.away : legs.home}</p>
-              ) : (
-                <p>Sets: {matchWinner === 'home' ? sets.home : sets.away} - {matchWinner === 'home' ? sets.away : sets.home}</p>
-              )}
+              <p>Sets: {sets.home} - {sets.away}</p>
+              <p className="text-2xl mt-2">Legs: {legs.home} - {legs.away}</p>
             </div>
             <div className="space-y-4">
               {/* Change Players Button */}
               <button
                 onClick={() => {
                   setShowMatchWin(false);
+                  // Award set to winner and continue match
+                  if (matchWinner === 'home') {
+                    setSets(prev => ({ ...prev, home: prev.home + 1 }));
+                  } else {
+                    setSets(prev => ({ ...prev, away: prev.away + 1 }));
+                  }
                   setMatchWinner(null);
-                  // Go back to name entry but keep game settings
+                  // Go back to name entry but keep game settings and set scores
                   setGameStarted(false);
                   setSetupComplete(false);
                   setNamesEntered(false);
-                  // Reset scores and stats
+                  // Reset leg scores and game stats
                   setLegs({ home: 0, away: 0 });
-                  setSets({ home: 0, away: 0 });
                   setHomeScore(startingScore);
                   setAwayScore(startingScore);
                   setHomeDartsThrown(0);
@@ -1401,20 +1399,20 @@ function App() {
                 CHANGE PLAYERS
               </button>
 
-              {/* Next Set Button - always show, allows continuing match as sets */}
+              {/* Next Set Button - continues match with same players */}
               <button
                 onClick={() => {
                   setShowMatchWin(false);
-                  setMatchWinner(null);
                   // Award set to winner
                   if (matchWinner === 'home') {
-                    setSets({ ...sets, home: sets.home + 1 });
+                    setSets(prev => ({ ...prev, home: prev.home + 1 }));
                   } else {
-                    setSets({ ...sets, away: sets.away + 1 });
+                    setSets(prev => ({ ...prev, away: prev.away + 1 }));
                   }
+                  setMatchWinner(null);
                   // Reset leg scores
                   setLegs({ home: 0, away: 0 });
-                  // Reset game scores
+                  // Reset game scores and stats
                   setHomeScore(startingScore);
                   setAwayScore(startingScore);
                   setHomeDartsThrown(0);
@@ -1428,8 +1426,13 @@ function App() {
                   setHomeEnteredGame(false);
                   setAwayEnteredGame(false);
                   // Switch starting player for next set
-                  setCurrentPlayer(currentPlayer === 'home' ? 'away' : 'home');
-                  setStartingPlayer(startingPlayer === 'home' ? 'away' : 'home');
+                  const nextStarter = startingPlayer === 'home' ? 'away' : 'home';
+                  setCurrentPlayer(nextStarter);
+                  setStartingPlayer(nextStarter);
+                  // Show first throw message
+                  const firstPlayerName = nextStarter === 'home' ? homePlayer : awayPlayer;
+                  setFirstThrowMessage(`${firstPlayerName} to throw first`);
+                  setTimeout(() => setFirstThrowMessage(""), 3000);
                 }}
                 className="w-full bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-2xl font-black py-4 px-8 rounded-lg shadow-lg transition-all active:scale-95"
               >
