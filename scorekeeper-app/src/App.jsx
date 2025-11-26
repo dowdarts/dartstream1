@@ -183,7 +183,8 @@ function App() {
     }
     
     if (currentPlayer === 'home') {
-      const newScore = homeScore - score;
+      const currentScore = homeScore;
+      const newScore = currentScore - score;
       
       // Check for bust (score goes below 0 or equals 1)
       if (newScore < 0 || newScore === 1) {
@@ -191,16 +192,20 @@ function App() {
         setTonMessage("BUST!");
         setTimeout(() => setTonMessage(""), 3000);
         setHomeHistory(prev => [0, ...prev].slice(0, 3));
-        setScoreLog(prev => [{ player: 'home', turn: turnNumber, homeScore: 0, awayScore: null, remaining: homeScore, bust: true }, ...prev]);
+        setScoreLog(prev => [{ player: 'home', turn: turnNumber, homeScore: 0, awayScore: null, remaining: currentScore, bust: true }, ...prev]);
         setHomeDartsThrown(prev => prev + 3);
         setHomeMatchDarts(prev => prev + 3);
         setCurrentPlayer('away');
-      } else if (newScore === 0) {
-        // Checkout
+      } else if (newScore === 0 && score > 0) {
+        // Checkout - only trigger if score being entered is > 0
         setHomeScore(newScore);
         setHomeHistory(prev => [score, ...prev].slice(0, 3));
         setHomeMatchScore(prev => prev + score);
         setScoreLog(prev => [{ player: 'home', turn: turnNumber, homeScore: score, awayScore: null, remaining: newScore }, ...prev]);
+        setCheckoutPlayer('home');
+        setShowDartCount(true);
+      } else if (newScore === 0 && score === 0 && currentScore === 0) {
+        // Already at 0, re-trigger checkout
         setCheckoutPlayer('home');
         setShowDartCount(true);
       } else {
@@ -222,7 +227,8 @@ function App() {
         setCurrentPlayer('away');
       }
     } else {
-      const newScore = awayScore - score;
+      const currentScore = awayScore;
+      const newScore = currentScore - score;
       
       // Check for bust (score goes below 0 or equals 1)
       if (newScore < 0 || newScore === 1) {
@@ -230,17 +236,21 @@ function App() {
         setTonMessage("BUST!");
         setTimeout(() => setTonMessage(""), 3000);
         setAwayHistory(prev => [0, ...prev].slice(0, 3));
-        setScoreLog(prev => [{ player: 'away', turn: turnNumber, homeScore: null, awayScore: 0, remaining: awayScore, bust: true }, ...prev]);
+        setScoreLog(prev => [{ player: 'away', turn: turnNumber, homeScore: null, awayScore: 0, remaining: currentScore, bust: true }, ...prev]);
         setAwayDartsThrown(prev => prev + 3);
         setAwayMatchDarts(prev => prev + 3);
         setCurrentPlayer('home');
         setTurnNumber(prev => prev + 1);
-      } else if (newScore === 0) {
-        // Checkout
+      } else if (newScore === 0 && score > 0) {
+        // Checkout - only trigger if score being entered is > 0
         setAwayScore(newScore);
         setAwayHistory(prev => [score, ...prev].slice(0, 3));
         setAwayMatchScore(prev => prev + score);
         setScoreLog(prev => [{ player: 'away', turn: turnNumber, homeScore: null, awayScore: score, remaining: newScore }, ...prev]);
+        setCheckoutPlayer('away');
+        setShowDartCount(true);
+      } else if (newScore === 0 && score === 0 && currentScore === 0) {
+        // Already at 0, re-trigger checkout
         setCheckoutPlayer('away');
         setShowDartCount(true);
       } else {
