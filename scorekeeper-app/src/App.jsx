@@ -576,6 +576,19 @@ function App() {
   };
 
   const startNewLeg = (setWasWon = false) => {
+    // Save current leg data before resetting
+    setPreviousLegData({
+      homeScore,
+      awayScore,
+      homeDartsThrown,
+      awayDartsThrown,
+      scoreLog,
+      turnNumber,
+      startingPlayer,
+      legs: { ...legs },
+      sets: { ...sets }
+    });
+    
     // Reset game scores and stats for new leg
     setHomeScore(startingScore);
     setAwayScore(startingScore);
@@ -1455,6 +1468,19 @@ function App() {
               {/* Continue Match Button - continues match with same players */}
               <button
                 onClick={() => {
+                  // Save current leg data before resetting
+                  setPreviousLegData({
+                    homeScore,
+                    awayScore,
+                    homeDartsThrown,
+                    awayDartsThrown,
+                    scoreLog,
+                    turnNumber,
+                    startingPlayer,
+                    legs: { ...legs },
+                    sets: { ...sets }
+                  });
+                  
                   setShowMatchWin(false);
                   setMatchWinner(null);
                   // Reset leg scores
