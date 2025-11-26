@@ -539,6 +539,11 @@ function App() {
         newAwayLegs = 0;
         setLegs({ home: 0, away: 0 });
         setWon = true;
+        // Show match winner screen when a set is won
+        setMatchWinner(winningPlayer);
+        setShowMatchWin(true);
+        setShowWinConfirm(false);
+        return;
       } else if (newAwayLegs >= requiredLegs) {
         newAwaySets += 1;
         setSets(prev => ({ ...prev, away: prev.away + 1 }));
@@ -547,10 +552,15 @@ function App() {
         newAwayLegs = 0;
         setLegs({ home: 0, away: 0 });
         setWon = true;
+        // Show match winner screen when a set is won
+        setMatchWinner(winningPlayer);
+        setShowMatchWin(true);
+        setShowWinConfirm(false);
+        return;
       }
     }
 
-    // Check if match winner condition is met
+    // Check if match winner condition is met (no sets configured - check legs only)
     const matchResult = checkMatchWinner(newHomeSets, newAwaySets, newHomeLegs, newAwayLegs);
     
     if (matchResult) {
@@ -1390,16 +1400,28 @@ function App() {
       {showMatchWin && (
         <div className="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
           <div className="bg-gradient-to-b from-yellow-500 to-yellow-600 p-12 rounded-xl shadow-2xl border-8 border-yellow-300 max-w-2xl">
-            <h1 className="text-7xl font-black text-black mb-8 text-center animate-pulse">
-              🏆 MATCH WINNER! 🏆
-            </h1>
-            <h2 className="text-6xl font-black text-black mb-8 text-center">
-              {matchWinner === 'home' ? homePlayer : awayPlayer}
-            </h2>
-            <div className="text-3xl font-bold text-black mb-8 text-center">
-              <p>Sets: {sets.home} - {sets.away}</p>
-              <p className="text-2xl mt-2">Legs: {legs.home} - {legs.away}</p>
-            </div>
+            {(() => {
+              // Determine if this is a match win or set win
+              const isMatchWin = setsCount === 0 
+                ? (checkMatchWinner(sets.home, sets.away, legs.home, legs.away) !== null)
+                : (sets.home >= getRequiredSets() || sets.away >= getRequiredSets());
+              
+              return (
+                <>
+                  <h1 className="text-7xl font-black text-black mb-8 text-center animate-pulse">
+                    {isMatchWin ? '🏆 MATCH WINNER! 🏆' : '🎯 SET WINNER! 🎯'}
+                  </h1>
+                  <h2 className="text-6xl font-black text-black mb-8 text-center">
+                    {matchWinner === 'home' ? homePlayer : awayPlayer}
+                  </h2>
+                  <div className="text-3xl font-bold text-black mb-8 text-center">
+                    <p>Sets: {sets.home} - {sets.away}</p>
+                    <p className="text-2xl mt-2">Legs: {legs.home} - {legs.away}</p>
+                  </div>
+                </>
+              );
+            })()}
+            
             <div className="space-y-4">
               {/* Change Players Button */}
               <button
