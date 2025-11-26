@@ -852,7 +852,7 @@ function App() {
   // Name Entry Page
   if (!namesEntered) {
     return (
-      <div className="h-screen bg-black flex items-center justify-center p-4">
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
         <div className="bg-gradient-to-b from-gray-800 to-gray-900 p-12 rounded-xl shadow-2xl border-4 border-yellow-400 max-w-2xl w-full">
           <div className="flex flex-col items-center mb-8">
             <img src="dartstream-logo.png" alt="DartStream" className="w-64 h-auto mb-4" />
@@ -910,7 +910,7 @@ function App() {
   // Skip setup page if preset was selected
   if (!setupComplete && !presetSelected) {
     return (
-      <div className="h-screen bg-black flex items-center justify-center p-4">
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
         <div className="bg-gradient-to-b from-gray-800 to-gray-900 p-8 rounded-xl shadow-2xl border-4 border-yellow-400 max-w-4xl w-full">
           <h1 className="text-5xl font-black text-yellow-400 mb-8 text-center">Game Setup</h1>
           
@@ -1068,7 +1068,7 @@ function App() {
   // Coin Toss & Starting Player Page
   if (!gameStarted) {
     return (
-      <div className="h-screen bg-black flex items-center justify-center p-4">
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
         <div className="bg-gradient-to-b from-gray-800 to-gray-900 p-12 rounded-xl shadow-2xl border-4 border-yellow-400 max-w-2xl w-full">
           <div className="flex flex-col items-center mb-8">
             <img src="dartstream-logo.png" alt="DartStream" className="w-48 h-auto mb-4" />
@@ -1155,8 +1155,8 @@ function App() {
   }
 
   return (
-    <div className="h-screen bg-black flex items-center justify-center p-0 m-0 overflow-hidden">
-      <div className="w-full h-full bg-black text-white flex flex-col shadow-2xl max-w-4xl">
+    <div className="min-h-screen bg-black flex items-center justify-center p-0 m-0 overflow-auto">
+      <div className="w-full min-h-screen bg-black text-white flex flex-col shadow-2xl max-w-4xl">
       {/* Ton popup */}
       {tonMessage && (
         <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-black px-16 py-12 rounded-2xl shadow-2xl text-9xl font-black z-50 animate-fade-in border-8 border-black">
