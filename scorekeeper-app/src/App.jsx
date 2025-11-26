@@ -517,6 +517,7 @@ function App() {
     let newAwayLegs = legs.away;
     let newHomeSets = sets.home;
     let newAwaySets = sets.away;
+    let setWon = false;
 
     // Award leg to winner
     if (winningPlayer === 'home') {
@@ -537,6 +538,7 @@ function App() {
         newHomeLegs = 0;
         newAwayLegs = 0;
         setLegs({ home: 0, away: 0 });
+        setWon = true;
       } else if (newAwayLegs >= requiredLegs) {
         newAwaySets += 1;
         setSets(prev => ({ ...prev, away: prev.away + 1 }));
@@ -544,14 +546,49 @@ function App() {
         newHomeLegs = 0;
         newAwayLegs = 0;
         setLegs({ home: 0, away: 0 });
+        setWon = true;
       }
     }
 
-    // Always show match winner screen after a leg is won
-    // Match never ends automatically - only when user clicks "END MATCH"
-    setMatchWinner(winningPlayer);
-    setShowMatchWin(true);
-    setShowWinConfirm(false);
+    // Check if match winner condition is met
+    const matchResult = checkMatchWinner(newHomeSets, newAwaySets, newHomeLegs, newAwayLegs);
+    
+    if (matchResult) {
+      // Show match winner screen - match can continue or end based on user choice
+      setMatchWinner(matchResult);
+      setShowMatchWin(true);
+      setShowWinConfirm(false);
+    } else {
+      // No match winner yet - start new leg
+      setShowWinConfirm(false);
+      startNewLeg(setWon);
+    }
+  };
+
+  const startNewLeg = (setWasWon = false) => {
+    // Reset game scores and stats for new leg
+    setHomeScore(startingScore);
+    setAwayScore(startingScore);
+    setHomeDartsThrown(0);
+    setAwayDartsThrown(0);
+    setScoreLog([]);
+    setTurnNumber(1);
+    setHomeEnteredGame(false);
+    setAwayEnteredGame(false);
+    
+    // If a set was won, switch starting player
+    if (setWasWon) {
+      const nextStarter = startingPlayer === 'home' ? 'away' : 'home';
+      setCurrentPlayer(nextStarter);
+      setStartingPlayer(nextStarter);
+      // Show first throw message
+      const firstPlayerName = nextStarter === 'home' ? homePlayer : awayPlayer;
+      setFirstThrowMessage(`${firstPlayerName} to throw first`);
+      setTimeout(() => setFirstThrowMessage(""), 3000);
+    } else {
+      // Same starting player for new leg (no set won)
+      setCurrentPlayer(startingPlayer);
+    }
   };
 
   const flipCoin = () => {
@@ -1354,7 +1391,7 @@ function App() {
         <div className="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
           <div className="bg-gradient-to-b from-yellow-500 to-yellow-600 p-12 rounded-xl shadow-2xl border-8 border-yellow-300 max-w-2xl">
             <h1 className="text-7xl font-black text-black mb-8 text-center animate-pulse">
-              🏆 LEG WINNER! 🏆
+              🏆 MATCH WINNER! 🏆
             </h1>
             <h2 className="text-6xl font-black text-black mb-8 text-center">
               {matchWinner === 'home' ? homePlayer : awayPlayer}
@@ -1368,14 +1405,8 @@ function App() {
               <button
                 onClick={() => {
                   setShowMatchWin(false);
-                  // Award set to winner and continue match
-                  if (matchWinner === 'home') {
-                    setSets(prev => ({ ...prev, home: prev.home + 1 }));
-                  } else {
-                    setSets(prev => ({ ...prev, away: prev.away + 1 }));
-                  }
                   setMatchWinner(null);
-                  // Go back to name entry but keep game settings and set scores
+                  // Go back to name entry but keep game settings and scores
                   setGameStarted(false);
                   setSetupComplete(false);
                   setNamesEntered(false);
@@ -1399,16 +1430,10 @@ function App() {
                 CHANGE PLAYERS
               </button>
 
-              {/* Next Set Button - continues match with same players */}
+              {/* Continue Match Button - continues match with same players */}
               <button
                 onClick={() => {
                   setShowMatchWin(false);
-                  // Award set to winner
-                  if (matchWinner === 'home') {
-                    setSets(prev => ({ ...prev, home: prev.home + 1 }));
-                  } else {
-                    setSets(prev => ({ ...prev, away: prev.away + 1 }));
-                  }
                   setMatchWinner(null);
                   // Reset leg scores
                   setLegs({ home: 0, away: 0 });
@@ -1425,7 +1450,7 @@ function App() {
                   setTurnNumber(1);
                   setHomeEnteredGame(false);
                   setAwayEnteredGame(false);
-                  // Switch starting player for next set
+                  // Switch starting player for continuation
                   const nextStarter = startingPlayer === 'home' ? 'away' : 'home';
                   setCurrentPlayer(nextStarter);
                   setStartingPlayer(nextStarter);
@@ -1436,7 +1461,7 @@ function App() {
                 }}
                 className="w-full bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-2xl font-black py-4 px-8 rounded-lg shadow-lg transition-all active:scale-95"
               >
-                NEXT SET
+                CONTINUE MATCH
               </button>
 
               {/* End Match Button */}
