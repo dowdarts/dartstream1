@@ -1486,7 +1486,7 @@ function App() {
                   
                   setShowMatchWin(false);
                   setMatchWinner(null);
-                  // Reset leg scores
+                  // Legs are already reset to 0-0 from confirmWin, but ensure they're reset
                   setLegs({ home: 0, away: 0 });
                   // Reset game scores and stats
                   setHomeScore(startingScore);
@@ -1501,8 +1501,10 @@ function App() {
                   setTurnNumber(1);
                   setHomeEnteredGame(false);
                   setAwayEnteredGame(false);
-                  // Switch starting player for continuation
-                  const nextStarter = startingPlayer === 'home' ? 'away' : 'home';
+                  // Alternate starting player based on total completed legs across all sets
+                  // Use initialStartingPlayer as the base and alternate based on total legs played
+                  const totalCompletedLegs = (sets.home + sets.away) * getRequiredLegs();
+                  const nextStarter = (totalCompletedLegs % 2 === 0) ? initialStartingPlayer : (initialStartingPlayer === 'home' ? 'away' : 'home');
                   setCurrentPlayer(nextStarter);
                   setStartingPlayer(nextStarter);
                   // Show first throw message
