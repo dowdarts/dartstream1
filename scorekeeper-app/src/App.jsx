@@ -111,38 +111,48 @@ function App() {
     setShowPairingUI(true);
     
     // Save pairing code to Supabase
-    if (window.supabaseConfig && window.supabase) {
-      try {
-        if (!window.supabaseClient) {
-          const { createClient } = window.supabase;
-          window.supabaseClient = createClient(window.supabaseConfig.url, window.supabaseConfig.key);
-        }
-        
-        await window.supabaseClient
-          .from('game_states')
-          .upsert({
-            game_id: code,
-            game_state: {
-              homePlayerName,
-              awayPlayerName,
-              homeScore,
-              awayScore,
-              currentPlayer,
-              sets,
-              legs,
-              gameType,
-              legsFormat,
-              legsCount,
-              setsFormat,
-              setsCount,
-              gameStarted,
-              pairingCode: code
-            },
-            updated_at: new Date().toISOString()
-          });
-      } catch (error) {
-        console.error('Failed to create pairing code:', error);
+    if (!window.supabaseConfig || !window.supabase) {
+      alert('Supabase not configured. Please refresh the page.');
+      return;
+    }
+    
+    try {
+      if (!window.supabaseClient) {
+        const { createClient } = window.supabase;
+        window.supabaseClient = createClient(window.supabaseConfig.url, window.supabaseConfig.key);
       }
+      
+      const result = await window.supabaseClient
+        .from('game_states')
+        .upsert({
+          game_id: code,
+          game_state: {
+            homePlayerName,
+            awayPlayerName,
+            homeScore,
+            awayScore,
+            currentPlayer,
+            sets,
+            legs,
+            gameType,
+            legsFormat,
+            legsCount,
+            setsFormat,
+            setsCount,
+            gameStarted,
+            pairingCode: code
+          },
+          updated_at: new Date().toISOString()
+        });
+        
+      if (result.error) {
+        throw result.error;
+      }
+      
+      console.log('Pairing code created:', code);
+    } catch (error) {
+      console.error('Failed to create pairing code:', error);
+      alert('Failed to create pairing code: ' + error.message);
     }
   };
 

@@ -374,16 +374,29 @@
             try {
                 supabase = createClient(url, key);
                 
+                console.log('Looking for game with code:', gameId);
+                
                 // Test the connection and check if game exists
                 const { data, error: testError } = await supabase
                     .from('game_states')
-                    .select('game_id')
+                    .select('*')
                     .eq('game_id', gameId)
                     .single();
                 
-                if (testError || !data) {
-                    throw new Error('Code not found. Make sure you clicked CONNECT in the scoring app.');
+                console.log('Query result:', { data, testError });
+                
+                if (testError) {
+                    if (testError.code === 'PGRST116') {
+                        throw new Error('Code "' + code + '" not found. Make sure you clicked CONNECT in the scoring app first.');
+                    }
+                    throw new Error(testError.message);
                 }
+                
+                if (!data) {
+                    throw new Error('No data found for code: ' + code);
+                }
+                
+                console.log('Connection successful, subscribing to updates...');
                 
                 // Connection successful - hide setup overlay
                 document.getElementById('setupOverlay').classList.add('hidden');
