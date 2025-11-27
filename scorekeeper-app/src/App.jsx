@@ -1534,12 +1534,26 @@ function App() {
         </div>
       </div>
 
-      {/* Set Score Display */}
-      <div className="bg-black px-1 py-0.5 flex items-center justify-center text-yellow-400 shadow-lg border-y border-gray-800">
+      {/* Set Score Display with Connection Code */}
+      <div className="bg-black px-1 py-0.5 flex items-center justify-between text-yellow-400 shadow-lg border-y border-gray-800">
         <div className="text-xs font-bold tracking-wide flex gap-2">
           <span>S:{sets.home}-{sets.away}</span>
           <span>L:{legs.home}-{legs.away}</span>
-          {pairingCode && <span className="text-blue-400">📡 {pairingCode}</span>}
+        </div>
+        {pairingCode && (
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(pairingCode);
+              alert(`Code ${pairingCode} copied to clipboard!`);
+            }}
+            className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-black py-1 px-2 rounded shadow transition-all active:scale-95"
+            title="Click to copy connection code"
+          >
+            📡 {pairingCode}
+          </button>
+        )}
+        <div className="text-xs font-bold tracking-wide">
+          <span>Turn {turnNumber}</span>
         </div>
       </div>
 
