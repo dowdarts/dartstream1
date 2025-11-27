@@ -81,6 +81,33 @@
             text-transform: uppercase;
         }
 
+        .turn-indicator {
+            font-size: 48px;
+            font-weight: bold;
+            color: #10b981;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            margin-bottom: 15px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .player-section.active .turn-indicator {
+            opacity: 1;
+            animation: turnPulse 2s infinite;
+        }
+
+        @keyframes turnPulse {
+            0%, 100% { 
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.7;
+                transform: scale(1.05);
+            }
+        }
+
         .remaining-score {
             font-size: 200px;
             font-weight: bold;
@@ -298,6 +325,7 @@
         <div class="scores-container">
             <div class="player-section" id="homePlayer">
                 <div class="player-name" id="homeName">HOME</div>
+                <div class="turn-indicator">🎯 YOUR TURN</div>
                 <div class="remaining-score" id="homeScore">501</div>
                 <div class="last-shot" id="homeLastShot"></div>
                 <div class="stats-row">
@@ -314,6 +342,7 @@
 
             <div class="player-section" id="awayPlayer">
                 <div class="player-name" id="awayName">AWAY</div>
+                <div class="turn-indicator">🎯 YOUR TURN</div>
                 <div class="remaining-score" id="awayScore">501</div>
                 <div class="last-shot" id="awayLastShot"></div>
                 <div class="stats-row">
