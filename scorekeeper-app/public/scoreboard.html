@@ -538,6 +538,7 @@
         let currentDisplayPlayer = 'home'; // Track who should be highlighted
 
         function updateScoreboard(data) {
+            console.log('Scoreboard received update:', data);
             document.getElementById('connectionStatus').textContent = '✓ Connected - Live';
             document.getElementById('connectionStatus').className = 'connection-status connected';
 
@@ -562,7 +563,9 @@
             // Update scores with animation
             if (data.homeScore !== undefined) {
                 const homeScoreEl = document.getElementById('homeScore');
+                console.log('Updating home score from', lastHomeScore, 'to', data.homeScore);
                 if (lastHomeScore !== null && data.homeScore !== lastHomeScore) {
+                    console.log('Home score changed - animating');
                     homeScoreEl.classList.remove('score-update');
                     void homeScoreEl.offsetWidth; // Force reflow
                     homeScoreEl.classList.add('score-update');
@@ -573,7 +576,9 @@
             }
             if (data.awayScore !== undefined) {
                 const awayScoreEl = document.getElementById('awayScore');
+                console.log('Updating away score from', lastAwayScore, 'to', data.awayScore);
                 if (lastAwayScore !== null && data.awayScore !== lastAwayScore) {
+                    console.log('Away score changed - animating');
                     awayScoreEl.classList.remove('score-update');
                     void awayScoreEl.offsetWidth; // Force reflow
                     awayScoreEl.classList.add('score-update');
