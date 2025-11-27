@@ -101,6 +101,7 @@ function App() {
   const [awayEnteredGame, setAwayEnteredGame] = useState(false); // Track if away has entered in double-in
   const [pairingCode, setPairingCode] = useState(null); // 4-digit pairing code
   const [showPairingUI, setShowPairingUI] = useState(false); // Show pairing popup
+  const [connectionComplete, setConnectionComplete] = useState(false); // Track if connection is set up
 
   const quickScores = [26, 40, 41, 43, 45, 60, 81, 85, 100, 180, 140];
 
@@ -109,6 +110,7 @@ function App() {
     const code = Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit code
     setPairingCode(code);
     setShowPairingUI(true);
+    setConnectionComplete(true);
     
     // Save pairing code to Supabase
     if (!window.supabaseConfig || !window.supabase) {
@@ -1005,6 +1007,42 @@ function App() {
   const homeMatchAverage = calculateAverage(homeMatchScore, homeMatchDarts);
   const awayMatchAverage = calculateAverage(awayMatchScore, awayMatchDarts);
 
+  // Connection Page - First Step
+  if (!connectionComplete) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <div className="bg-gradient-to-b from-gray-800 to-gray-900 p-8 rounded-lg shadow-2xl border-2 border-yellow-400 max-w-md w-full">
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <img src="dartstream-logo.png" alt="DartStream" className="w-20 h-auto" />
+            <div>
+              <h1 className="text-2xl font-black text-yellow-400">DartStream</h1>
+              <h2 className="text-lg font-bold text-white">Scoreboard Connection</h2>
+            </div>
+          </div>
+          
+          <div className="text-center mb-6">
+            <p className="text-white mb-2">Connect your scoreboard display:</p>
+            <p className="text-sm text-gray-400">Generate a code to sync with your TV/OBS</p>
+          </div>
+
+          <button
+            onClick={generatePairingCode}
+            className="w-full bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xl font-black py-4 rounded-lg shadow-lg transition-all active:scale-95 mb-4"
+          >
+            📡 GENERATE CONNECTION CODE
+          </button>
+
+          <button
+            onClick={() => setConnectionComplete(true)}
+            className="w-full bg-gradient-to-b from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white text-sm font-bold py-2 rounded shadow-lg transition-all active:scale-95"
+          >
+            Skip Connection (Local Only)
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Welcome Page with Preset Game Modes
   if (!welcomePageShown) {
     const selectPreset = (type, legs, mode) => {
@@ -1495,19 +1533,13 @@ function App() {
         </div>
       </div>
 
-      {/* Set Score Display with Connect Button */}
-      <div className="bg-black px-1 py-0.5 flex items-center justify-between text-yellow-400 shadow-lg border-y border-gray-800">
-        <button
-          onClick={generatePairingCode}
-          className="bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-bold py-1 px-2 rounded shadow transition-all active:scale-95"
-        >
-          📡 CONNECT
-        </button>
-        <div className="text-xs font-bold tracking-wide flex gap-1">
+      {/* Set Score Display */}
+      <div className="bg-black px-1 py-0.5 flex items-center justify-center text-yellow-400 shadow-lg border-y border-gray-800">
+        <div className="text-xs font-bold tracking-wide flex gap-2">
           <span>S:{sets.home}-{sets.away}</span>
           <span>L:{legs.home}-{legs.away}</span>
+          {pairingCode && <span className="text-blue-400">📡 {pairingCode}</span>}
         </div>
-        <div className="w-20"></div>
       </div>
 
       {/* Score Log Header - Fixed */}
