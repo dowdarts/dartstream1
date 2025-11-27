@@ -11,10 +11,18 @@
     <link rel="manifest" href="/dartstream1/manifest.json" />
     <link rel="apple-touch-icon" href="/dartstream1/dartstream-logo.png" />
     <title>DartStream Scorekeeper</title>
-    <script type="module" crossorigin src="/dartstream1/assets/index-DkTUMV64.js"></script>
+    <script type="module" crossorigin src="/dartstream1/assets/index-SzTubL9V.js"></script>
     <link rel="stylesheet" crossorigin href="/dartstream1/assets/index-DJmvXEoc.css">
   </head>
   <body>
     <div id="root"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      // Initialize Supabase for remote scoreboard sync
+      window.supabaseConfig = {
+        url: 'https://svbjrjevxopwmtytfaik.supabase.co',
+        key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN2YmpyamV2eG9wd210eXRmYWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI2NzE4NzksImV4cCI6MjA0ODI0Nzg3OX0.vxI8b-BqPphS0g5Dja_MhB3Ot8P4v1xeaqtdznU5KKw'
+      };
+    </script>
   </body>
 </html>
