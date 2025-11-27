@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard Test - Send Test Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        h1 {
+            color: #facc15;
+        }
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        button {
+            background: #facc15;
+            color: #1a1a2e;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #fcd34d;
+        }
+        .info {
+            background: rgba(16, 185, 129, 0.2);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #10b981;
+        }
+        .status {
+            background: rgba(239, 68, 68, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #ef4444;
+        }
+        .status.connected {
+            background: rgba(16, 185, 129, 0.2);
+            border-left: 4px solid #10b981;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background: #2a2a3e;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>📺 Scoreboard Test Tool</h1>
+    
+    <div class="info">
+        <strong>Instructions:</strong>
+        <ol>
+            <li>Open <code>scoreboard-app/index.html</code> in another browser window</li>
+            <li>Use the buttons below to send test data to the scoreboard</li>
+            <li>Watch the scoreboard update in real-time</li>
+        </ol>
+    </div>
+
+    <div class="status" id="status">
+        Broadcast channel initialized. Open scoreboard to see updates.
+    </div>
+
+    <div class="controls">
+        <h3>Quick Test Scenarios</h3>
+        
+        <button onclick="sendInitialState()">Initialize Match</button>
+        <button onclick="sendHomeScore()">Home Scores 60</button>
+        <button onclick="sendAwayScore()">Away Scores 100</button>
+        <button onclick="sendBust()">Send Bust</button>
+        <button onclick="sendCheckout()">Send Checkout</button>
+        <button onclick="updateLegs()">Add Leg</button>
+        <button onclick="updateSets()">Add Set</button>
+    </div>
+
+    <div class="controls">
+        <h3>Custom Score Entry</h3>
+        <input type="text" id="customScore" placeholder="Enter score" value="45">
+        <select id="playerSelect" aria-label="Select player">
+            <option value="home">Home</option>
+            <option value="away">Away</option>
+        </select>
+        <button onclick="sendCustomScore()">Send Custom Score</button>
+    </div>
+
+    <div class="controls">
+        <h3>Player Names</h3>
+        <input type="text" id="homeName" placeholder="Home player name" value="John">
+        <input type="text" id="awayName" placeholder="Away player name" value="Mike">
+        <button onclick="updateNames()">Update Names</button>
+    </div>
+
+    <script>
+        const channel = new BroadcastChannel('dartstream-channel');
+        
+        let gameState = {
+            homePlayerName: 'John',
+            awayPlayerName: 'Mike',
+            homeScore: 501,
+            awayScore: 501,
+            currentPlayer: 'home',
+            homeAverage: 45.67,
+            awayAverage: 52.33,
+            homeDartsThrown: 24,
+            awayDartsThrown: 21,
+            sets: { home: 0, away: 0 },
+            legs: { home: 0, away: 0 },
+            gameType: '501',
+            legsFormat: 'best-of',
+            legsCount: 5,
+            setsFormat: 'best-of',
+            setsCount: 3
+        };
+
+        function broadcast(lastShot = null, lastShotPlayer = null) {
+            channel.postMessage({
+                ...gameState,
+                lastShot,
+                lastShotPlayer
+            });
+            console.log('Broadcasted:', gameState);
+        }
+
+        function sendInitialState() {
+            gameState = {
+                homePlayerName: 'John',
+                awayPlayerName: 'Mike',
+                homeScore: 501,
+                awayScore: 501,
+                currentPlayer: 'home',
+                homeAverage: 0,
+                awayAverage: 0,
+                homeDartsThrown: 0,
+                awayDartsThrown: 0,
+                sets: { home: 0, away: 0 },
+                legs: { home: 0, away: 0 },
+                gameType: '501',
+                legsFormat: 'best-of',
+                legsCount: 5,
+                setsFormat: 'best-of',
+                setsCount: 3
+            };
+            broadcast();
+            updateStatus('Initial match state sent');
+        }
+
+        function sendHomeScore() {
+            gameState.homeScore -= 60;
+            gameState.homeDartsThrown += 3;
+            gameState.homeAverage = 55.5;
+            gameState.currentPlayer = 'away';
+            broadcast(60, 'home');
+            updateStatus('Home scored 60');
+        }
+
+        function sendAwayScore() {
+            gameState.awayScore -= 100;
+            gameState.awayDartsThrown += 3;
+            gameState.awayAverage = 60.2;
+            gameState.currentPlayer = 'home';
+            broadcast(100, 'away');
+            updateStatus('Away scored 100');
+        }
+
+        function sendBust() {
+            const player = gameState.currentPlayer;
+            gameState[player + 'DartsThrown'] += 3;
+            gameState.currentPlayer = player === 'home' ? 'away' : 'home';
+            broadcast('BUST', player);
+            updateStatus(`${player.toUpperCase()} busted`);
+        }
+
+        function sendCheckout() {
+            const player = gameState.currentPlayer;
+            const score = gameState[player + 'Score'];
+            gameState[player + 'Score'] = 0;
+            broadcast(`${score} CHECKOUT!`, player);
+            updateStatus(`${player.toUpperCase()} checked out with ${score}`);
+        }
+
+        function updateLegs() {
+            gameState.legs.home++;
+            broadcast();
+            updateStatus('Leg added to home');
+        }
+
+        function updateSets() {
+            gameState.sets.home++;
+            broadcast();
+            updateStatus('Set added to home');
+        }
+
+        function sendCustomScore() {
+            const score = parseInt(document.getElementById('customScore').value);
+            const player = document.getElementById('playerSelect').value;
+            
+            if (isNaN(score) || score < 0 || score > 180) {
+                alert('Please enter a valid score (0-180)');
+                return;
+            }
+
+            gameState[player + 'Score'] -= score;
+            gameState[player + 'DartsThrown'] += 3;
+            gameState.currentPlayer = player === 'home' ? 'away' : 'home';
+            
+            // Update average
+            const avgKey = player + 'Average';
+            gameState[avgKey] = ((gameState[avgKey] * (gameState[player + 'DartsThrown'] - 3)) + score) / gameState[player + 'DartsThrown'] * 3;
+            
+            broadcast(score, player);
+            updateStatus(`${player.toUpperCase()} scored ${score}`);
+        }
+
+        function updateNames() {
+            gameState.homePlayerName = document.getElementById('homeName').value;
+            gameState.awayPlayerName = document.getElementById('awayName').value;
+            broadcast();
+            updateStatus('Player names updated');
+        }
+
+        function updateStatus(message) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status connected';
+            setTimeout(() => {
+                status.className = 'status';
+                status.textContent = 'Ready to send more data...';
+            }, 2000);
+        }
+
+        // Initialize
+        updateStatus('Ready to send test data');
+        console.log('Test tool ready. Open scoreboard-app/index.html in another window.');
+    </script>
+</body>
+</html>

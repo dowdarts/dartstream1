@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .status {
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-size: 18px;
+        }
+        .success { background: #10b981; }
+        .error { background: #ef4444; }
+        .info { background: #3b82f6; }
+        button {
+            background: #facc15;
+            color: #1a1a2e;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #fcd34d;
+        }
+        .log {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔌 DartStream Connection Test</h1>
+    
+    <div class="status info" id="status">
+        Initializing Broadcast Channel...
+    </div>
+
+    <div>
+        <button onclick="testBroadcast()">Send Test Message</button>
+        <button onclick="requestState()">Request State</button>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <h3>Message Log:</h3>
+    <div class="log" id="log"></div>
+
+    <div class="info" style="margin-top: 30px; padding: 15px;">
+        <strong>Instructions:</strong><br>
+        1. Make sure scorekeeper app is running at http://localhost:5173/dartstream1/<br>
+        2. This page will listen for messages from the scorekeeper<br>
+        3. Click "Request State" to ask the scorekeeper to send data<br>
+        4. If you see messages appearing in the log, the connection works!
+    </div>
+
+    <script>
+        const channel = new BroadcastChannel('dartstream-channel');
+        const statusDiv = document.getElementById('status');
+        const logDiv = document.getElementById('log');
+        let messageCount = 0;
+
+        function addLog(message, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const color = type === 'sent' ? '#facc15' : type === 'received' ? '#10b981' : '#94a3b8';
+            logDiv.innerHTML += `<div style="color: ${color}; margin: 5px 0;">[${time}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        channel.onmessage = (event) => {
+            messageCount++;
+            const data = event.data;
+            
+            addLog(`✅ RECEIVED MESSAGE #${messageCount}`, 'received');
+            addLog(`   Players: ${data.homePlayerName || 'Home'} vs ${data.awayPlayerName || 'Away'}`, 'received');
+            addLog(`   Scores: ${data.homeScore || 0} - ${data.awayScore || 0}`, 'received');
+            addLog(`   Game Started: ${data.gameStarted ? 'YES ✓' : 'NO (waiting)'}`, 'received');
+            addLog(`   Current Player: ${data.currentPlayer || 'home'}`, 'received');
+            
+            if (data.lastShot) {
+                addLog(`   🎯 Last Shot: ${data.lastShot} by ${data.lastShotPlayer}`, 'received');
+            }
+            
+            statusDiv.className = 'status success';
+            statusDiv.textContent = `✅ Connected! Received ${messageCount} message(s)`;
+        };
+
+        function testBroadcast() {
+            channel.postMessage({
+                type: 'TEST',
+                message: 'Hello from test page!',
+                timestamp: Date.now()
+            });
+            addLog('📤 Sent test message', 'sent');
+        }
+
+        function requestState() {
+            channel.postMessage({ type: 'REQUEST_STATE' });
+            addLog('📤 Requested current state from scorekeeper', 'sent');
+            statusDiv.className = 'status info';
+            statusDiv.textContent = 'Waiting for response...';
+        }
+
+        function clearLog() {
+            logDiv.innerHTML = '';
+            addLog('Log cleared', 'info');
+        }
+
+        // Auto-request state on load
+        setTimeout(() => {
+            statusDiv.className = 'status info';
+            statusDiv.textContent = 'Broadcast Channel ready. Requesting state...';
+            requestState();
+            addLog('Connection test tool ready', 'info');
+        }, 500);
+
+        // Check for inactivity
+        setInterval(() => {
+            if (messageCount === 0) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '⚠️ No messages received. Is the scorekeeper app running?';
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

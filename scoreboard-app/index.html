@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DartStream Scoreboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 1920px;
+            height: 1080px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            color: white;
+        }
+
+        .scoreboard {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+        }
+
+        /* Header with match info */
+        .match-info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .match-title {
+            font-size: 48px;
+            font-weight: bold;
+            color: #facc15;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .match-format {
+            font-size: 32px;
+            color: #94a3b8;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Main scores container */
+        .scores-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            flex: 1;
+            margin-bottom: 40px;
+        }
+
+        .player-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 4px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .player-section.active {
+            border-color: #facc15;
+            background: rgba(250, 204, 21, 0.1);
+            box-shadow: 0 0 40px rgba(250, 204, 21, 0.3);
+        }
+
+        .player-name {
+            font-size: 72px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+            text-transform: uppercase;
+        }
+
+        .remaining-score {
+            font-size: 200px;
+            font-weight: bold;
+            color: #facc15;
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.7);
+            margin-bottom: 20px;
+        }
+
+        .last-shot {
+            font-size: 60px;
+            color: #10b981;
+            font-weight: bold;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .last-shot.animating {
+            animation: shotPulse 0.6s ease-out;
+        }
+
+        @keyframes shotPulse {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 40px;
+            margin-top: 20px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 24px;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Match stats footer */
+        .match-stats {
+            display: flex;
+            justify-content: center;
+            gap: 100px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+        }
+
+        .match-stat {
+            text-align: center;
+        }
+
+        .match-stat-label {
+            font-size: 28px;
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
+
+        .match-stat-value {
+            font-size: 56px;
+            font-weight: bold;
+            color: #facc15;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Connection status */
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 22px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .connection-status.connected {
+            background: #10b981;
+            color: white;
+            animation: none;
+        }
+
+        .connection-status.disconnected {
+            background: #ef4444;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status disconnected" id="connectionStatus">
+        ⚠️ Waiting for scorekeeper...
+    </div>
+
+    <div class="scoreboard">
+        <div class="match-info">
+            <div class="match-title" id="matchTitle">DARTSTREAM</div>
+            <div class="match-format" id="matchFormat">501 • Best of 3 Legs</div>
+        </div>
+
+        <div class="scores-container">
+            <div class="player-section" id="homePlayer">
+                <div class="player-name" id="homeName">HOME</div>
+                <div class="remaining-score" id="homeScore">501</div>
+                <div class="last-shot" id="homeLastShot"></div>
+                <div class="stats-row">
+                    <div class="stat">
+                        <div class="stat-label">Average</div>
+                        <div class="stat-value" id="homeAverage">0.00</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Darts</div>
+                        <div class="stat-value" id="homeDarts">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="player-section" id="awayPlayer">
+                <div class="player-name" id="awayName">AWAY</div>
+                <div class="remaining-score" id="awayScore">501</div>
+                <div class="last-shot" id="awayLastShot"></div>
+                <div class="stats-row">
+                    <div class="stat">
+                        <div class="stat-label">Average</div>
+                        <div class="stat-value" id="awayAverage">0.00</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Darts</div>
+                        <div class="stat-value" id="awayDarts">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="match-stats">
+            <div class="match-stat">
+                <div class="match-stat-label">Sets</div>
+                <div class="match-stat-value">
+                    <span id="homeSets">0</span> - <span id="awaySets">0</span>
+                </div>
+            </div>
+            <div class="match-stat">
+                <div class="match-stat-label">Legs</div>
+                <div class="match-stat-value">
+                    <span id="homeLegs">0</span> - <span id="awayLegs">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Broadcast Channel for local communication with scorekeeper app
+        const channel = new BroadcastChannel('dartstream-channel');
+        const connectionStatus = document.getElementById('connectionStatus');
+        let isConnected = false;
+        let lastUpdateTime = 0;
+
+        // Listen for updates from scorekeeper
+        channel.onmessage = (event) => {
+            const data = event.data;
+            console.log('Received data:', data);
+            
+            // Update connection status
+            if (!isConnected) {
+                isConnected = true;
+            }
+            lastUpdateTime = Date.now();
+            
+            // Update status message based on game state
+            if (data.gameStarted) {
+                connectionStatus.textContent = '✓ Connected - Live';
+                connectionStatus.className = 'connection-status connected';
+            } else {
+                connectionStatus.textContent = '✓ Connected - Waiting for match to start';
+                connectionStatus.className = 'connection-status connected';
+            }
+
+            // Update player names
+            if (data.homePlayerName) {
+                document.getElementById('homeName').textContent = data.homePlayerName.toUpperCase();
+            }
+            if (data.awayPlayerName) {
+                document.getElementById('awayName').textContent = data.awayPlayerName.toUpperCase();
+            }
+
+            // Update scores
+            if (data.homeScore !== undefined) {
+                document.getElementById('homeScore').textContent = data.homeScore;
+            }
+            if (data.awayScore !== undefined) {
+                document.getElementById('awayScore').textContent = data.awayScore;
+            }
+
+            // Update current player highlight
+            const homeSection = document.getElementById('homePlayer');
+            const awaySection = document.getElementById('awayPlayer');
+            if (data.currentPlayer === 'home') {
+                homeSection.classList.add('active');
+                awaySection.classList.remove('active');
+            } else if (data.currentPlayer === 'away') {
+                awaySection.classList.add('active');
+                homeSection.classList.remove('active');
+            }
+
+            // Update last shot with animation
+            if (data.lastShot) {
+                const player = data.lastShotPlayer;
+                const shotElement = document.getElementById(player === 'home' ? 'homeLastShot' : 'awayLastShot');
+                
+                // Clear other player's last shot
+                const otherShotElement = document.getElementById(player === 'home' ? 'awayLastShot' : 'homeLastShot');
+                otherShotElement.textContent = '';
+                
+                // Animate the shot
+                shotElement.textContent = data.lastShot;
+                shotElement.classList.remove('animating');
+                // Force reflow to restart animation
+                void shotElement.offsetWidth;
+                shotElement.classList.add('animating');
+
+                // Clear after 3 seconds
+                setTimeout(() => {
+                    shotElement.textContent = '';
+                    shotElement.classList.remove('animating');
+                }, 3000);
+            }
+
+            // Update averages
+            if (data.homeAverage !== undefined) {
+                document.getElementById('homeAverage').textContent = data.homeAverage.toFixed(2);
+            }
+            if (data.awayAverage !== undefined) {
+                document.getElementById('awayAverage').textContent = data.awayAverage.toFixed(2);
+            }
+
+            // Update darts thrown
+            if (data.homeDartsThrown !== undefined) {
+                document.getElementById('homeDarts').textContent = data.homeDartsThrown;
+            }
+            if (data.awayDartsThrown !== undefined) {
+                document.getElementById('awayDarts').textContent = data.awayDartsThrown;
+            }
+
+            // Update sets and legs
+            if (data.sets) {
+                document.getElementById('homeSets').textContent = data.sets.home;
+                document.getElementById('awaySets').textContent = data.sets.away;
+            }
+            if (data.legs) {
+                document.getElementById('homeLegs').textContent = data.legs.home;
+                document.getElementById('awayLegs').textContent = data.legs.away;
+            }
+
+            // Update match format info
+            if (data.gameType && data.legsFormat && data.legsCount) {
+                const formatText = `${data.gameType} • ${data.legsFormat === 'best-of' ? 'Best of' : 'First to'} ${data.legsCount} Legs`;
+                document.getElementById('matchFormat').textContent = formatText;
+            }
+
+            // Update match title
+            if (data.homePlayerName && data.awayPlayerName) {
+                document.getElementById('matchTitle').textContent = 
+                    `${data.homePlayerName.toUpperCase()} vs ${data.awayPlayerName.toUpperCase()}`;
+            }
+        };
+
+        // Check connection status periodically
+        setInterval(() => {
+            const timeSinceUpdate = Date.now() - lastUpdateTime;
+            if (isConnected && timeSinceUpdate > 5000) {
+                isConnected = false;
+                connectionStatus.textContent = '⚠️ Connection lost...';
+                connectionStatus.className = 'connection-status disconnected';
+            }
+        }, 1000);
+
+        // Request initial state on load
+        setTimeout(() => {
+            channel.postMessage({ type: 'REQUEST_STATE' });
+        }, 500);
+    </script>
+</body>
+</html>

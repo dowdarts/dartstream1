@@ -2,6 +2,25 @@ import { useState, useEffect, useRef } from 'react';
 import './App.css';
 
 function App() {
+    // Broadcast channel for scoreboard communication (local)
+    const broadcastChannel = useRef(null);
+    
+    useEffect(() => {
+      // Initialize broadcast channel
+      broadcastChannel.current = new BroadcastChannel('dartstream-channel');
+      
+      // Listen for state requests from scoreboard
+      broadcastChannel.current.onmessage = (event) => {
+        if (event.data.type === 'REQUEST_STATE') {
+          broadcastGameState();
+        }
+      };
+      
+      return () => {
+        broadcastChannel.current?.close();
+      };
+    }, []);
+    
     // Ton popup state
     const [tonMessage, setTonMessage] = useState("");
   const [firstThrowMessage, setFirstThrowMessage] = useState("");
@@ -82,6 +101,45 @@ function App() {
   const [awayEnteredGame, setAwayEnteredGame] = useState(false); // Track if away has entered in double-in
 
   const quickScores = [26, 40, 41, 43, 45, 60, 81, 85, 100, 180, 140];
+
+  // Broadcast game state to scoreboard via Broadcast Channel API
+  const broadcastGameState = (lastShot = null, lastShotPlayer = null) => {
+    // Calculate averages
+    const homeAverage = homeMatchDarts > 0 ? (homeMatchScore / homeMatchDarts) * 3 : 0;
+    const awayAverage = awayMatchDarts > 0 ? (awayMatchScore / awayMatchDarts) * 3 : 0;
+    
+    const gameState = {
+      homePlayerName: homePlayerName,
+      awayPlayerName: awayPlayerName,
+      homeScore,
+      awayScore,
+      currentPlayer,
+      homeAverage,
+      awayAverage,
+      homeDartsThrown,
+      awayDartsThrown,
+      sets,
+      legs,
+      gameType,
+      legsFormat,
+      legsCount,
+      setsFormat,
+      setsCount,
+      lastShot,
+      lastShotPlayer,
+      gameStarted
+    };
+    
+    // Broadcast locally via Broadcast Channel API
+    if (broadcastChannel.current) {
+      broadcastChannel.current.postMessage(gameState);
+    }
+  };
+
+  // Broadcast state whenever key values change (including during setup)
+  useEffect(() => {
+    broadcastGameState();
+  }, [homeScore, awayScore, currentPlayer, sets, legs, homeDartsThrown, awayDartsThrown, homeMatchScore, awayMatchScore, gameStarted, homePlayerName, awayPlayerName, gameType]);
 
   // Keyboard event handler
   useEffect(() => {
@@ -222,6 +280,9 @@ function App() {
         setHomeDartsThrown(prev => prev + 3);
         setHomeMatchDarts(prev => prev + 3);
         setCurrentPlayer('away');
+        
+        // Broadcast bust to scoreboard
+        setTimeout(() => broadcastGameState('BUST', 'home'), 100);
       } else if (newScore === 0 && score > 0) {
         // Checkout - only trigger if score being entered is > 0
         setHomeScore(newScore);
@@ -230,6 +291,9 @@ function App() {
         setScoreLog(prev => [{ player: 'home', turn: turnNumber, homeScore: score, awayScore: null, remaining: newScore }, ...prev]);
         setCheckoutPlayer('home');
         setShowDartCount(true);
+        
+        // Broadcast checkout to scoreboard
+        setTimeout(() => broadcastGameState(`${score} CHECKOUT!`, 'home'), 100);
       } else if (newScore === 0 && score === 0 && currentScore === 0) {
         // Already at 0, re-trigger checkout
         setCheckoutPlayer('home');
@@ -258,6 +322,9 @@ function App() {
         
         if (score > 0) setHomeEnteredGame(true);
         setCurrentPlayer('away');
+        
+        // Broadcast score to scoreboard
+        setTimeout(() => broadcastGameState(score, 'home'), 100);
       }
     } else {
       const currentScore = awayScore;
@@ -274,6 +341,9 @@ function App() {
         setAwayMatchDarts(prev => prev + 3);
         setCurrentPlayer('home');
         setTurnNumber(prev => prev + 1);
+        
+        // Broadcast bust to scoreboard
+        setTimeout(() => broadcastGameState('BUST', 'away'), 100);
       } else if (newScore === 0 && score > 0) {
         // Checkout - only trigger if score being entered is > 0
         setAwayScore(newScore);
@@ -282,6 +352,9 @@ function App() {
         setScoreLog(prev => [{ player: 'away', turn: turnNumber, homeScore: null, awayScore: score, remaining: newScore }, ...prev]);
         setCheckoutPlayer('away');
         setShowDartCount(true);
+        
+        // Broadcast checkout to scoreboard
+        setTimeout(() => broadcastGameState(`${score} CHECKOUT!`, 'away'), 100);
       } else if (newScore === 0 && score === 0 && currentScore === 0) {
         // Already at 0, re-trigger checkout
         setCheckoutPlayer('away');
@@ -311,6 +384,9 @@ function App() {
         if (score > 0) setAwayEnteredGame(true);
         setCurrentPlayer('home');
         setTurnNumber(prev => prev + 1);
+        
+        // Broadcast score to scoreboard
+        setTimeout(() => broadcastGameState(score, 'away'), 100);
       }
     }
     setCurrentThrow('');
