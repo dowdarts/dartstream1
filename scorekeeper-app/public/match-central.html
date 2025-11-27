@@ -289,13 +289,34 @@
                 activeMatches = {};
                 
                 if (data && data.length > 0) {
+                    const now = new Date();
+                    const TWO_HOURS_MS = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+                    
                     data.forEach(game => {
                         if (game.game_state) {
-                            activeMatches[game.game_id] = {
-                                code: game.game_id,
-                                data: game.game_state,
-                                updatedAt: game.updated_at
-                            };
+                            const gameState = game.game_state;
+                            const updatedAt = new Date(game.updated_at);
+                            const timeSinceUpdate = now - updatedAt;
+                            
+                            // Filter criteria for active games:
+                            // 1. gameStarted must be true (game is active)
+                            // 2. updated within last 2 hours (not stale)
+                            const isGameActive = gameState.gameStarted === true;
+                            const isRecent = timeSinceUpdate < TWO_HOURS_MS;
+                            
+                            if (isGameActive && isRecent) {
+                                activeMatches[game.game_id] = {
+                                    code: game.game_id,
+                                    data: gameState,
+                                    updatedAt: game.updated_at
+                                };
+                            } else {
+                                console.log(`Filtering out game ${game.game_id}:`, {
+                                    gameStarted: gameState.gameStarted,
+                                    isRecent,
+                                    timeSinceUpdate: Math.round(timeSinceUpdate / 1000 / 60) + ' minutes ago'
+                                });
+                            }
                         }
                     });
                 }
