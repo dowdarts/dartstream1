@@ -1021,22 +1021,23 @@ function App() {
           </div>
           
           <div className="text-center mb-6">
-            <p className="text-white mb-2">Connect your scoreboard display:</p>
-            <p className="text-sm text-gray-400">Generate a code to sync with your TV/OBS</p>
+            <p className="text-white text-lg mb-3">How do you want to use DartStream?</p>
           </div>
 
           <button
             onClick={generatePairingCode}
-            className="w-full bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xl font-black py-4 rounded-lg shadow-lg transition-all active:scale-95 mb-4"
+            className="w-full bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-lg font-black py-4 rounded-lg shadow-lg transition-all active:scale-95 mb-3"
           >
-            📡 GENERATE CONNECTION CODE
+            📡 With TV Scoreboard
+            <div className="text-xs font-normal mt-1 opacity-80">Generate code to connect remote display</div>
           </button>
 
           <button
             onClick={() => setConnectionComplete(true)}
-            className="w-full bg-gradient-to-b from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white text-sm font-bold py-2 rounded shadow-lg transition-all active:scale-95"
+            className="w-full bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-lg font-black py-4 rounded-lg shadow-lg transition-all active:scale-95"
           >
-            Skip Connection (Local Only)
+            📱 Scoring App Only
+            <div className="text-xs font-normal mt-1 opacity-80">Use without remote scoreboard</div>
           </button>
         </div>
       </div>
