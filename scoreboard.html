@@ -272,14 +272,16 @@
     <div id="setupOverlay" class="setup-overlay">
         <div class="setup-box">
             <h1>🎯 DartStream Scoreboard</h1>
-            <p>Enter your Supabase credentials to connect</p>
-            <input type="text" id="supabaseUrl" placeholder="Supabase URL (e.g., https://xxx.supabase.co)">
-            <input type="text" id="supabaseKey" placeholder="Supabase Anon Key">
-            <input type="text" id="gameId" placeholder="Game ID (optional, defaults to 'default')" value="default">
-            <button onclick="connectToSupabase()">Connect</button>
-            <p style="font-size: 18px; color: #94a3b8; margin-top: 30px;">
-                Get these from: <strong>supabase.com → Your Project → Settings → API</strong>
-            </p>
+            <p>Enter the 4-digit code from your scoring app</p>
+            <input type="text" id="pairingCode" placeholder="0000" maxlength="4" style="width: 100%; padding: 20px; font-size: 48px; text-align: center; letter-spacing: 16px; font-weight: bold; border: 3px solid #facc15; background: #2a2a3e; color: #facc15; border-radius: 12px; margin: 20px 0;">
+            <button id="connectBtn" onclick="connectWithCode()">Connect</button>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #475569;">
+                <p style="font-size: 14px; color: #94a3b8; margin-bottom: 10px;">Or enter manually:</p>
+                <input type="text" id="supabaseUrl" placeholder="Supabase URL" style="font-size: 14px;">
+                <input type="text" id="supabaseKey" placeholder="Supabase Anon Key" style="font-size: 14px;">
+                <input type="text" id="gameId" placeholder="Game ID" value="default" style="font-size: 14px;">
+                <button onclick="connectToSupabase()" style="font-size: 14px; margin-top: 10px;">Manual Connect</button>
+            </div>
         </div>
     </div>
 
@@ -350,25 +352,53 @@
         let subscription = null;
         let gameId = 'default';
 
-        window.connectToSupabase = async () => {
-            const url = document.getElementById('supabaseUrl').value.trim();
-            const key = document.getElementById('supabaseKey').value.trim();
-            gameId = document.getElementById('gameId').value.trim() || 'default';
-
-            if (!url || !key) {
-                alert('Please enter both Supabase URL and Key');
+        // Connect using 4-digit pairing code
+        window.connectWithCode = async () => {
+            const code = document.getElementById('pairingCode').value.trim();
+            
+            if (!code || code.length !== 4) {
+                alert('Please enter a valid 4-digit code');
                 return;
             }
 
-            // Save to localStorage for next time
-            localStorage.setItem('supabaseUrl', url);
-            localStorage.setItem('supabaseKey', key);
-            localStorage.setItem('gameId', gameId);
+            // Hardcoded Supabase credentials
+            const url = 'https://svbjrjevxopwmtytfaik.supabase.co';
+            const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN2YmpyamV2eG9wd210eXRmYWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI2NzE4NzksImV4cCI6MjA0ODI0Nzg3OX0.vxI8b-BqPphS0g5Dja_MhB3Ot8P4v1xeaqtdznU5KKw';
+            gameId = code;
+
+            // Disable connect button during connection attempt
+            const connectBtn = document.getElementById('connectBtn');
+            connectBtn.disabled = true;
+            connectBtn.textContent = 'Connecting...';
 
             try {
                 supabase = createClient(url, key);
                 
-                // Hide setup overlay
+                console.log('Looking for game with code:', gameId);
+                
+                // Test the connection and check if game exists
+                const { data, error: testError } = await supabase
+                    .from('game_states')
+                    .select('*')
+                    .eq('game_id', gameId)
+                    .single();
+                
+                console.log('Query result:', { data, testError });
+                
+                if (testError) {
+                    if (testError.code === 'PGRST116') {
+                        throw new Error('Code "' + code + '" not found. Make sure you clicked CONNECT in the scoring app first.');
+                    }
+                    throw new Error(testError.message);
+                }
+                
+                if (!data) {
+                    throw new Error('No data found for code: ' + code);
+                }
+                
+                console.log('Connection successful, subscribing to updates...');
+                
+                // Connection successful - hide setup overlay
                 document.getElementById('setupOverlay').classList.add('hidden');
                 document.getElementById('connectionStatus').textContent = '🔄 Connecting...';
                 document.getElementById('connectionStatus').className = 'connection-status setup';
@@ -379,6 +409,61 @@
             } catch (error) {
                 console.error('Connection error:', error);
                 alert('Failed to connect: ' + error.message);
+                
+                // Re-enable connect button to allow retry
+                connectBtn.disabled = false;
+                connectBtn.textContent = 'Connect';
+            }
+        };
+
+        window.connectToSupabase = async () => {
+            const url = document.getElementById('supabaseUrl').value.trim();
+            const key = document.getElementById('supabaseKey').value.trim();
+            gameId = document.getElementById('gameId').value.trim() || 'default';
+
+            if (!url || !key) {
+                alert('Please enter both Supabase URL and Key');
+                return;
+            }
+
+            // Disable connect button during connection attempt
+            const connectBtn = document.getElementById('connectBtn');
+            connectBtn.disabled = true;
+            connectBtn.textContent = 'Connecting...';
+
+            // Save to localStorage for next time
+            localStorage.setItem('supabaseUrl', url);
+            localStorage.setItem('supabaseKey', key);
+            localStorage.setItem('gameId', gameId);
+
+            try {
+                supabase = createClient(url, key);
+                
+                // Test the connection before hiding overlay
+                const { error: testError } = await supabase
+                    .from('game_states')
+                    .select('game_id')
+                    .limit(1);
+                
+                if (testError) {
+                    throw new Error('Connection test failed: ' + testError.message);
+                }
+                
+                // Connection successful - hide setup overlay
+                document.getElementById('setupOverlay').classList.add('hidden');
+                document.getElementById('connectionStatus').textContent = '🔄 Connecting...';
+                document.getElementById('connectionStatus').className = 'connection-status setup';
+
+                // Subscribe to game updates
+                await subscribeToGame();
+                
+            } catch (error) {
+                console.error('Connection error:', error);
+                alert('Failed to connect: ' + error.message + '\n\nPlease check your credentials and try again.');
+                
+                // Re-enable connect button to allow retry
+                connectBtn.disabled = false;
+                connectBtn.textContent = 'Connect';
             }
         };
 
