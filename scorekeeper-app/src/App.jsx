@@ -95,15 +95,59 @@ function App() {
   const [showMatchWin, setShowMatchWin] = useState(false);
   const [showDartCount, setShowDartCount] = useState(false);
   const [checkoutPlayer, setCheckoutPlayer] = useState(null);
-  const [editingScore, setEditingScore] = useState(null); // { turn, player }
+  const [editingScore, setEditingScore] = useState(null); // { turn, player, savedCurrentPlayer }
   const [previousLegData, setPreviousLegData] = useState(null); // Store previous leg data for undo
   const [homeEnteredGame, setHomeEnteredGame] = useState(false); // Track if home has entered in double-in
   const [awayEnteredGame, setAwayEnteredGame] = useState(false); // Track if away has entered in double-in
+  const [pairingCode, setPairingCode] = useState(null); // 4-digit pairing code
+  const [showPairingUI, setShowPairingUI] = useState(false); // Show pairing popup
 
   const quickScores = [26, 40, 41, 43, 45, 60, 81, 85, 100, 180, 140];
 
-  // Broadcast game state to scoreboard via Broadcast Channel API
-  const broadcastGameState = (lastShot = null, lastShotPlayer = null) => {
+  // Generate pairing code and save to Supabase
+  const generatePairingCode = async () => {
+    const code = Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit code
+    setPairingCode(code);
+    setShowPairingUI(true);
+    
+    // Save pairing code to Supabase
+    if (window.supabaseConfig && window.supabase) {
+      try {
+        if (!window.supabaseClient) {
+          const { createClient } = window.supabase;
+          window.supabaseClient = createClient(window.supabaseConfig.url, window.supabaseConfig.key);
+        }
+        
+        await window.supabaseClient
+          .from('game_states')
+          .upsert({
+            game_id: code,
+            game_state: {
+              homePlayerName,
+              awayPlayerName,
+              homeScore,
+              awayScore,
+              currentPlayer,
+              sets,
+              legs,
+              gameType,
+              legsFormat,
+              legsCount,
+              setsFormat,
+              setsCount,
+              gameStarted,
+              pairingCode: code
+            },
+            updated_at: new Date().toISOString()
+          });
+      } catch (error) {
+        console.error('Failed to create pairing code:', error);
+      }
+    }
+  };
+
+  // Broadcast game state to scoreboard via Broadcast Channel API and Supabase
+  const broadcastGameState = async (lastShot = null, lastShotPlayer = null) => {
     // Calculate averages
     const homeAverage = homeMatchDarts > 0 ? (homeMatchScore / homeMatchDarts) * 3 : 0;
     const awayAverage = awayMatchDarts > 0 ? (awayMatchScore / awayMatchDarts) * 3 : 0;
@@ -133,6 +177,27 @@ function App() {
     // Broadcast locally via Broadcast Channel API
     if (broadcastChannel.current) {
       broadcastChannel.current.postMessage(gameState);
+    }
+    
+    // Broadcast remotely via Supabase (if configured)
+    if (window.supabaseConfig && window.supabase && gameStarted) {
+      try {
+        if (!window.supabaseClient) {
+          const { createClient } = window.supabase;
+          window.supabaseClient = createClient(window.supabaseConfig.url, window.supabaseConfig.key);
+        }
+        
+        const gameId = pairingCode || 'default';
+        await window.supabaseClient
+          .from('game_states')
+          .upsert({
+            game_id: gameId,
+            game_state: gameState,
+            updated_at: new Date().toISOString()
+          });
+      } catch (error) {
+        console.log('Supabase sync skipped:', error.message);
+      }
     }
   };
 
@@ -217,8 +282,8 @@ function App() {
   };
 
   // Validation function: score thrown + remaining = starting score
-  const validateScore = (scoreThrown, remainingAfter) => {
-    return (scoreThrown + remainingAfter) === startingScore;
+  const validateScore = (scoreThrown, remainingAfter, currentScore) => {
+    return (scoreThrown + remainingAfter) === currentScore;
   };
 
   const handleEditScore = (turn, player) => {
@@ -227,7 +292,8 @@ function App() {
       const score = player === 'home' ? entry.homeScore : entry.awayScore;
       if (score !== null) {
         setCurrentThrow(score.toString());
-        setEditingScore({ turn, player, firstEdit: true });
+        // Save current player so turn order is preserved after edit
+        setEditingScore({ turn, player, firstEdit: true, savedCurrentPlayer: currentPlayer });
       }
     }
   };
@@ -299,8 +365,8 @@ function App() {
         setCheckoutPlayer('home');
         setShowDartCount(true);
       } else {
-        // Validate: score + remaining must equal starting score
-        if (!validateScore(score, newScore)) {
+        // Validate: score + remaining must equal current score before throw
+        if (!validateScore(score, newScore, currentScore)) {
           setTonMessage("ERROR: Invalid score!");
           setTimeout(() => setTonMessage(""), 3000);
           return;
@@ -360,8 +426,8 @@ function App() {
         setCheckoutPlayer('away');
         setShowDartCount(true);
       } else {
-        // Validate: score + remaining must equal starting score
-        if (!validateScore(score, newScore)) {
+        // Validate: score + remaining must equal current score before throw
+        if (!validateScore(score, newScore, currentScore)) {
           setTonMessage("ERROR: Invalid score!");
           setTimeout(() => setTonMessage(""), 3000);
           return;
@@ -395,65 +461,61 @@ function App() {
   const handleBack = () => {
     // If in edit mode, handle digit-by-digit undo
     if (editingScore) {
-      // If currentThrow is empty or 0, delete the whole action
+      // If currentThrow is empty or 0, DELETE this score and move to the previous one
       if (!currentThrow || currentThrow === '0' || currentThrow === '') {
         const lastEntry = scoreLog[0];
         const lastPlayer = lastEntry.player;
-        const remainingLog = scoreLog.slice(1);
         
-        // Remove the last entry from score log
+        // Remove this score from the log
         setScoreLog(prev => prev.slice(1));
         
+        // Restore the player's score
         if (lastPlayer === 'home') {
-          // Restore home player's previous score
           const scoreToRevert = lastEntry.homeScore || 0;
           setHomeScore(prev => prev + scoreToRevert);
           setHomeHistory(prev => prev.slice(1));
           setHomeMatchScore(prev => prev - scoreToRevert);
-          
           setHomeDartsThrown(prev => Math.max(0, prev - 3));
           setHomeMatchDarts(prev => Math.max(0, prev - 3));
-          
-          // Set current player back to home
-          setCurrentPlayer('home');
-          
-          // Home threw, so check if we need to decrement turn
-          // Turn should be decremented if there's no away throw with the same turn number remaining
-          const awayThrowInSameTurn = remainingLog.find(e => e.turn === lastEntry.turn && e.player === 'away');
-          if (!awayThrowInSameTurn) {
-            // No away throw in this turn, so decrement turn
-            setTurnNumber(prev => Math.max(1, prev - 1));
-          } else {
-            // Away already threw in this turn, keep the same turn number
-            setTurnNumber(lastEntry.turn);
-          }
         } else {
-          // Restore away player's previous score
           const scoreToRevert = lastEntry.awayScore || 0;
           setAwayScore(prev => prev + scoreToRevert);
           setAwayHistory(prev => prev.slice(1));
           setAwayMatchScore(prev => prev - scoreToRevert);
-          
           setAwayDartsThrown(prev => Math.max(0, prev - 3));
           setAwayMatchDarts(prev => Math.max(0, prev - 3));
-          
-          // Set current player back to away
-          setCurrentPlayer('away');
-          
-          // Away threw, so we're undoing the completion of a turn
-          // Check if home threw in this turn
+        }
+        
+        // Adjust turn number if needed
+        const remainingLog = scoreLog.slice(1);
+        if (lastPlayer === 'away') {
+          // Undoing away's throw means we're going back to away's turn
+          // Check if this was the end of a round
           const homeThrowInSameTurn = remainingLog.find(e => e.turn === lastEntry.turn && e.player === 'home');
           if (homeThrowInSameTurn) {
-            // Home threw first in this turn, keep the same turn number
+            // Home threw in this turn too, so we're mid-round - keep turn number
             setTurnNumber(lastEntry.turn);
           } else {
-            // Away threw first (less common), decrement turn
+            // Away threw first (unusual), decrement turn
             setTurnNumber(prev => Math.max(1, prev - 1));
           }
         }
+        // If it was home's throw, turn number stays the same (we're in the middle of a round)
         
-        setCurrentThrow('');
-        setEditingScore(null);
+        // Now if there are more scores, enter edit mode for the next one
+        if (remainingLog.length > 0) {
+          const nextEntry = remainingLog[0];
+          const nextPlayer = nextEntry.player;
+          const nextScore = nextPlayer === 'home' ? nextEntry.homeScore : nextEntry.awayScore;
+          
+          setCurrentThrow(nextScore.toString());
+          setEditingScore({ turn: nextEntry.turn, player: nextPlayer, firstEdit: true, savedCurrentPlayer: currentPlayer });
+        } else {
+          // No more scores to edit
+          setCurrentThrow('');
+          setEditingScore(null);
+        }
+        
         return;
       }
       
@@ -475,9 +537,9 @@ function App() {
       const lastScore = lastPlayer === 'home' ? lastEntry.homeScore : lastEntry.awayScore;
       
       // Set the last score in currentThrow and enter edit mode with firstEdit=true to allow overwrite
+      // Save the CURRENT player so we can restore it after editing
       setCurrentThrow(lastScore.toString());
-      setEditingScore({ turn: lastEntry.turn, player: lastPlayer, firstEdit: true });
-      setCurrentPlayer(lastPlayer);
+      setEditingScore({ turn: lastEntry.turn, player: lastPlayer, firstEdit: true, savedCurrentPlayer: currentPlayer });
       return;
     }
     
@@ -511,7 +573,9 @@ function App() {
       const score = evaluateExpression(currentThrow);
       
       if (editingScore) {
-        // Update existing score
+        // EDIT MODE: Update existing score WITHOUT changing current player or turn
+        // This preserves the throw order regardless of which previous score is edited
+        
         const oldEntry = scoreLog.find(e => e.turn === editingScore.turn && e.player === editingScore.player);
         const oldScore = editingScore.player === 'home' ? oldEntry.homeScore : oldEntry.awayScore;
         const scoreDiff = score - oldScore;
@@ -529,68 +593,92 @@ function App() {
           return;
         }
         
+        // Check if edit would result in negative or 1 - treat as bust (0 score)
+        const isBust = newRemaining < 0 || newRemaining === 1;
+        if (isBust) {
+          setTonMessage("BUST!");
+          setTimeout(() => setTonMessage(""), 3000);
+        }
+        
         // Update the score log entry
         setScoreLog(prev => prev.map(entry => {
           if (entry.turn === editingScore.turn && entry.player === editingScore.player) {
-            // Check if edit would result in negative or 1 - treat as bust (0 score)
-            if (newRemaining < 0 || newRemaining === 1) {
-              setTonMessage("BUST!");
-              setTimeout(() => setTonMessage(""), 3000);
+            if (isBust) {
               return { ...entry, [editingScore.player === 'home' ? 'homeScore' : 'awayScore']: 0, remaining: scoreBeforeThisTurn, bust: true };
             }
-            
             return { ...entry, [editingScore.player === 'home' ? 'homeScore' : 'awayScore']: score, remaining: newRemaining, bust: false };
           }
           return entry;
         }));
         
-        // Update current player scores
+        // Update match scores (total points scored)
         if (editingScore.player === 'home') {
-          if (newRemaining < 0 || newRemaining === 1) {
-            setHomeScore(scoreBeforeThisTurn);
-            setHomeMatchScore(prev => prev - oldScore);
+          if (isBust) {
+            setHomeMatchScore(prev => prev - oldScore); // Remove the old score
           } else {
-            setHomeScore(newRemaining);
-            setHomeMatchScore(prev => prev + scoreDiff);
+            setHomeMatchScore(prev => prev + scoreDiff); // Adjust by difference
           }
         } else {
-          if (newRemaining < 0 || newRemaining === 1) {
-            setAwayScore(scoreBeforeThisTurn);
-            setAwayMatchScore(prev => prev - oldScore);
+          if (isBust) {
+            setAwayMatchScore(prev => prev - oldScore); // Remove the old score
           } else {
-            setAwayScore(newRemaining);
-            setAwayMatchScore(prev => prev + scoreDiff);
+            setAwayMatchScore(prev => prev + scoreDiff); // Adjust by difference
           }
         }
         
-        // Update all subsequent entries' remaining scores
+        // Recalculate all subsequent entries' remaining scores
+        // This only affects the EDITED PLAYER's subsequent scores
         setScoreLog(prev => {
           const entries = [...prev];
-          let updatedHomeScore = editingScore.player === 'home' ? newRemaining : homeScore;
-          let updatedAwayScore = editingScore.player === 'away' ? newRemaining : awayScore;
           
-          // Find the edited entry and recalculate all scores after it
-          for (let i = 0; i < entries.length; i++) {
-            if (entries[i].turn === editingScore.turn && entries[i].player === editingScore.player) {
-              // Start recalculating from the entry after this one
-              for (let j = i - 1; j >= 0; j--) {
-                const entry = entries[j];
-                if (entry.player === 'home' && entry.homeScore !== null) {
-                  updatedHomeScore = updatedHomeScore - entry.homeScore;
-                  entries[j] = { ...entry, remaining: updatedHomeScore };
-                } else if (entry.player === 'away' && entry.awayScore !== null) {
-                  updatedAwayScore = updatedAwayScore - entry.awayScore;
-                  entries[j] = { ...entry, remaining: updatedAwayScore };
-                }
+          // Find the index of the edited entry
+          const editedIndex = entries.findIndex(e => e.turn === editingScore.turn && e.player === editingScore.player);
+          if (editedIndex === -1) return entries;
+          
+          // Get the edited entry's new remaining score
+          const editedEntry = entries[editedIndex];
+          let runningRemaining = editedEntry.remaining;
+          
+          // Only recalculate subsequent scores for the SAME PLAYER
+          // Work backwards through log (from most recent to oldest)
+          for (let i = editedIndex - 1; i >= 0; i--) {
+            const entry = entries[i];
+            
+            // Only update if this entry is for the same player we're editing
+            if (entry.player === editingScore.player) {
+              const scoreThrown = editingScore.player === 'home' ? entry.homeScore : entry.awayScore;
+              if (scoreThrown !== null) {
+                runningRemaining = runningRemaining - scoreThrown;
+                entries[i] = { ...entry, remaining: runningRemaining };
               }
-              break;
             }
           }
+          
+          // Update current displayed score if we edited the most recent entry for this player
+          const mostRecentForPlayer = entries.find(e => e.player === editingScore.player);
+          if (mostRecentForPlayer && mostRecentForPlayer.turn === editingScore.turn) {
+            // This was the most recent throw for this player, update their displayed score
+            if (editingScore.player === 'home') {
+              setHomeScore(mostRecentForPlayer.remaining);
+            } else {
+              setAwayScore(mostRecentForPlayer.remaining);
+            }
+          }
+          
           return entries;
         });
         
+        // CRITICAL: Restore the saved current player if it was stored
+        // This ensures the turn order continues exactly as it was before editing
+        if (editingScore.savedCurrentPlayer) {
+          setCurrentPlayer(editingScore.savedCurrentPlayer);
+        }
+        
         setEditingScore(null);
         setCurrentThrow('');
+        
+        // Broadcast updated state to scoreboard
+        setTimeout(() => broadcastGameState(), 100);
       } else {
         handleQuickScore(score);
       }
@@ -1330,6 +1418,28 @@ function App() {
           <div className="text-xs font-bold text-center">to throw first</div>
         </div>
       )}
+      {/* Pairing Code Popup */}
+      {showPairingUI && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+          <div className="bg-gradient-to-b from-gray-800 to-gray-900 p-6 rounded-xl shadow-2xl border-4 border-blue-400 max-w-md">
+            <h2 className="text-3xl font-black text-white mb-4 text-center">📡 Connect Scoreboard</h2>
+            <p className="text-sm text-gray-300 mb-6 text-center">Enter this code on your scoreboard:</p>
+            <div className="bg-black border-4 border-yellow-400 rounded-lg p-6 mb-6">
+              <div className="text-6xl font-black text-yellow-400 text-center tracking-widest">{pairingCode}</div>
+            </div>
+            <div className="text-xs text-gray-400 mb-4 text-center">
+              Open the scoreboard at:<br/>
+              <span className="text-blue-400 font-bold">dowdarts.github.io/dartstream1/scoreboard.html</span>
+            </div>
+            <button
+              onClick={() => setShowPairingUI(false)}
+              className="w-full bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-lg font-black py-3 rounded-lg shadow-lg transition-all active:scale-95"
+            >
+              DONE
+            </button>
+          </div>
+        </div>
+      )}
       {/* Header - Player Scores */}
       <div className="grid grid-cols-2 gap-0">
         {/* Home Player */}
@@ -1365,12 +1475,19 @@ function App() {
         </div>
       </div>
 
-      {/* Set Score Display */}
-      <div className="bg-black px-1 py-0.5 flex items-center justify-center text-yellow-400 shadow-lg border-y border-gray-800">
+      {/* Set Score Display with Connect Button */}
+      <div className="bg-black px-1 py-0.5 flex items-center justify-between text-yellow-400 shadow-lg border-y border-gray-800">
+        <button
+          onClick={generatePairingCode}
+          className="bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-bold py-1 px-2 rounded shadow transition-all active:scale-95"
+        >
+          📡 CONNECT
+        </button>
         <div className="text-xs font-bold tracking-wide flex gap-1">
           <span>S:{sets.home}-{sets.away}</span>
           <span>L:{legs.home}-{legs.away}</span>
         </div>
+        <div className="w-20"></div>
       </div>
 
       {/* Score Log Header - Fixed */}

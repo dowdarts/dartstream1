@@ -14,6 +14,14 @@
   </head>
   <body>
     <div id="root"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      // Initialize Supabase for remote scoreboard sync
+      window.supabaseConfig = {
+        url: 'https://svbjrjevxopwmtytfaik.supabase.co',
+        key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN2YmpyamV2eG9wd210eXRmYWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI2NzE4NzksImV4cCI6MjA0ODI0Nzg3OX0.vxI8b-BqPphS0g5Dja_MhB3Ot8P4v1xeaqtdznU5KKw'
+      };
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
