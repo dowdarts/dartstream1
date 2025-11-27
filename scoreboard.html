@@ -476,12 +476,12 @@
                         event: '*',
                         schema: 'public',
                         table: 'game_states',
-                        filter: `id=eq.${gameId}`
+                        filter: `game_id=eq.${gameId}`
                     },
                     (payload) => {
                         console.log('Update received:', payload);
-                        if (payload.new?.state) {
-                            updateScoreboard(payload.new.state);
+                        if (payload.new?.game_state) {
+                            updateScoreboard(payload.new.game_state);
                         }
                     }
                 )
@@ -501,12 +501,12 @@
             try {
                 const { data, error } = await supabase
                     .from('game_states')
-                    .select('state')
-                    .eq('id', gameId)
+                    .select('game_state')
+                    .eq('game_id', gameId)
                     .single();
 
-                if (data?.state) {
-                    updateScoreboard(data.state);
+                if (data?.game_state) {
+                    updateScoreboard(data.game_state);
                 }
             } catch (error) {
                 console.log('No initial state found (this is normal for new games)');
