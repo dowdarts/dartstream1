@@ -290,7 +290,7 @@
                 
                 if (data && data.length > 0) {
                     const now = new Date();
-                    const TWO_HOURS_MS = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+                    const TEN_MINUTES_MS = 10 * 60 * 1000; // 10 minutes in milliseconds
                     
                     data.forEach(game => {
                         if (game.game_state) {
@@ -300,9 +300,9 @@
                             
                             // Filter criteria for active games:
                             // 1. gameStarted must be true (game is active)
-                            // 2. updated within last 2 hours (not stale)
+                            // 2. updated within last 10 minutes (not stale/timed out)
                             const isGameActive = gameState.gameStarted === true;
-                            const isRecent = timeSinceUpdate < TWO_HOURS_MS;
+                            const isRecent = timeSinceUpdate < TEN_MINUTES_MS;
                             
                             if (isGameActive && isRecent) {
                                 activeMatches[game.game_id] = {
