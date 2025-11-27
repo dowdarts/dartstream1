@@ -235,8 +235,8 @@
 </head>
 <body>
     <div class="header">
-        <h1>🎯 DartStream Match Central</h1>
-        <p>Select an active match to display on scoreboard</p>
+        <h1>DartStream Match Central</h1>
+        <p>Select a live match to display on your scoreboard</p>
     </div>
 
     <div class="container">
@@ -245,7 +245,7 @@
                 <div class="status-dot"></div>
                 <span>Listening for active matches...</span>
             </div>
-            <button class="refresh-btn" onclick="refreshMatches()">🔄 Refresh</button>
+            <button class="refresh-btn" onclick="refreshMatches()">Refresh</button>
         </div>
 
         <div id="matchesGrid" class="matches-grid">
@@ -253,7 +253,7 @@
         </div>
 
         <div id="emptyState" class="empty-state" style="display: none;">
-            <div class="empty-state-icon">🎯</div>
+            <div class="empty-state-icon"></div>
             <h2>No Active Matches</h2>
             <p>Waiting for scoring apps to create matches...</p>
         </div>
@@ -374,7 +374,7 @@
                         <span>${new Date(match.updatedAt).toLocaleTimeString()}</span>
                     </div>
                     <button class="select-btn" onclick="event.stopPropagation(); selectMatch('${code}')">
-                        📺 Display on Scoreboard
+                        Display on Scoreboard
                     </button>
                 `;
                 
