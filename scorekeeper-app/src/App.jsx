@@ -160,10 +160,15 @@ function App() {
   };
 
   // Broadcast game state to scoreboard via Broadcast Channel API and Supabase
-  const broadcastGameState = async (lastShot = null, lastShotPlayer = null, overrideHomeScore = null, overrideAwayScore = null) => {
-    // Calculate averages
-    const homeAverage = homeMatchDarts > 0 ? (homeMatchScore / homeMatchDarts) * 3 : 0;
-    const awayAverage = awayMatchDarts > 0 ? (awayMatchScore / awayMatchDarts) * 3 : 0;
+  const broadcastGameState = async (lastShot = null, lastShotPlayer = null, overrideHomeScore = null, overrideAwayScore = null, overrideHomeDarts = null, overrideAwayDarts = null, overrideHomeMatchScore = null, overrideAwayMatchScore = null) => {
+    // Calculate averages with overrides
+    const currentHomeDarts = overrideHomeDarts !== null ? overrideHomeDarts : homeDartsThrown;
+    const currentAwayDarts = overrideAwayDarts !== null ? overrideAwayDarts : awayDartsThrown;
+    const currentHomeMatchScore = overrideHomeMatchScore !== null ? overrideHomeMatchScore : homeMatchScore;
+    const currentAwayMatchScore = overrideAwayMatchScore !== null ? overrideAwayMatchScore : awayMatchScore;
+    
+    const homeAverage = currentHomeDarts > 0 ? (currentHomeMatchScore / currentHomeDarts) * 3 : 0;
+    const awayAverage = currentAwayDarts > 0 ? (currentAwayMatchScore / currentAwayDarts) * 3 : 0;
     
     const gameState = {
       homePlayerName: homePlayerName,
@@ -173,8 +178,8 @@ function App() {
       currentPlayer,
       homeAverage,
       awayAverage,
-      homeDartsThrown,
-      awayDartsThrown,
+      homeDartsThrown: currentHomeDarts,
+      awayDartsThrown: currentAwayDarts,
       sets,
       legs,
       gameType,
@@ -417,7 +422,9 @@ function App() {
         
         // Broadcast score to scoreboard with new score immediately
         skipNextBroadcast.current = true;
-        broadcastGameState(score, 'home', newScore, awayScore);
+        const newHomeDarts = homeDartsThrown + 3;
+        const newHomeMatchScore = homeMatchScore + score;
+        broadcastGameState(score, 'home', newScore, awayScore, newHomeDarts, awayDartsThrown, newHomeMatchScore, awayMatchScore);
         
         setCurrentPlayer('away');
       }
@@ -479,7 +486,9 @@ function App() {
         
         // Broadcast score to scoreboard with new score immediately
         skipNextBroadcast.current = true;
-        broadcastGameState(score, 'away', homeScore, newScore);
+        const newAwayDarts = awayDartsThrown + 3;
+        const newAwayMatchScore = awayMatchScore + score;
+        broadcastGameState(score, 'away', homeScore, newScore, homeDartsThrown, newAwayDarts, homeMatchScore, newAwayMatchScore);
         
         setCurrentPlayer('home');
         setTurnNumber(prev => prev + 1);
