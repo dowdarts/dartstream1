@@ -190,23 +190,33 @@ function App() {
     }
     
     // Broadcast remotely via Supabase (if configured)
-    if (window.supabaseConfig && window.supabase && gameStarted) {
+    if (window.supabaseConfig && window.supabase && gameStarted && pairingCode) {
       try {
         if (!window.supabaseClient) {
           const { createClient } = window.supabase;
           window.supabaseClient = createClient(window.supabaseConfig.url, window.supabaseConfig.key);
         }
         
-        const gameId = pairingCode || 'default';
-        await window.supabaseClient
+        console.log('Broadcasting to pairing code:', pairingCode, 'with state:', gameState);
+        const result = await window.supabaseClient
           .from('game_states')
           .upsert({
-            game_id: gameId,
+            game_id: pairingCode,
             game_state: gameState,
             updated_at: new Date().toISOString()
           });
+        
+        if (result.error) {
+          console.error('Supabase sync error:', result.error);
+        } else {
+          console.log('Supabase sync successful');
+        }
       } catch (error) {
-        console.log('Supabase sync skipped:', error.message);
+        console.error('Supabase sync failed:', error);
+      }
+    } else {
+      if (!pairingCode) {
+        console.log('No pairing code - not broadcasting to Supabase');
       }
     }
   };
