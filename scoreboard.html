@@ -87,6 +87,26 @@
             color: #facc15;
             text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.7);
             margin-bottom: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .remaining-score.score-update {
+            animation: scoreFlash 0.4s ease-out;
+        }
+
+        @keyframes scoreFlash {
+            0% {
+                transform: scale(1);
+                color: #facc15;
+            }
+            50% {
+                transform: scale(1.1);
+                color: #10b981;
+            }
+            100% {
+                transform: scale(1);
+                color: #facc15;
+            }
         }
 
         .last-shot {
@@ -539,14 +559,28 @@
                 currentDisplayPlayer = 'home';
             }
 
-            // Update scores
+            // Update scores with animation
             if (data.homeScore !== undefined) {
+                const homeScoreEl = document.getElementById('homeScore');
+                if (lastHomeScore !== null && data.homeScore !== lastHomeScore) {
+                    homeScoreEl.classList.remove('score-update');
+                    void homeScoreEl.offsetWidth; // Force reflow
+                    homeScoreEl.classList.add('score-update');
+                    setTimeout(() => homeScoreEl.classList.remove('score-update'), 400);
+                }
                 lastHomeScore = data.homeScore;
-                document.getElementById('homeScore').textContent = data.homeScore;
+                homeScoreEl.textContent = data.homeScore;
             }
             if (data.awayScore !== undefined) {
+                const awayScoreEl = document.getElementById('awayScore');
+                if (lastAwayScore !== null && data.awayScore !== lastAwayScore) {
+                    awayScoreEl.classList.remove('score-update');
+                    void awayScoreEl.offsetWidth; // Force reflow
+                    awayScoreEl.classList.add('score-update');
+                    setTimeout(() => awayScoreEl.classList.remove('score-update'), 400);
+                }
                 lastAwayScore = data.awayScore;
-                document.getElementById('awayScore').textContent = data.awayScore;
+                awayScoreEl.textContent = data.awayScore;
             }
 
             // Update current player highlight based on score changes
