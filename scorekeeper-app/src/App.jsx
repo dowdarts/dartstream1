@@ -159,7 +159,7 @@ function App() {
   };
 
   // Broadcast game state to scoreboard via Broadcast Channel API and Supabase
-  const broadcastGameState = async (lastShot = null, lastShotPlayer = null) => {
+  const broadcastGameState = async (lastShot = null, lastShotPlayer = null, overrideHomeScore = null, overrideAwayScore = null) => {
     // Calculate averages
     const homeAverage = homeMatchDarts > 0 ? (homeMatchScore / homeMatchDarts) * 3 : 0;
     const awayAverage = awayMatchDarts > 0 ? (awayMatchScore / awayMatchDarts) * 3 : 0;
@@ -167,8 +167,8 @@ function App() {
     const gameState = {
       homePlayerName: homePlayerName,
       awayPlayerName: awayPlayerName,
-      homeScore,
-      awayScore,
+      homeScore: overrideHomeScore !== null ? overrideHomeScore : homeScore,
+      awayScore: overrideAwayScore !== null ? overrideAwayScore : awayScore,
       currentPlayer,
       homeAverage,
       awayAverage,
@@ -409,10 +409,11 @@ function App() {
         }
         
         if (score > 0) setHomeEnteredGame(true);
-        setCurrentPlayer('away');
         
-        // Broadcast score to scoreboard
-        setTimeout(() => broadcastGameState(score, 'home'), 100);
+        // Broadcast score to scoreboard with new score immediately
+        broadcastGameState(score, 'home', newScore, awayScore);
+        
+        setCurrentPlayer('away');
       }
     } else {
       const currentScore = awayScore;
@@ -470,11 +471,12 @@ function App() {
         }
         
         if (score > 0) setAwayEnteredGame(true);
+        
+        // Broadcast score to scoreboard with new score immediately
+        broadcastGameState(score, 'away', homeScore, newScore);
+        
         setCurrentPlayer('home');
         setTurnNumber(prev => prev + 1);
-        
-        // Broadcast score to scoreboard
-        setTimeout(() => broadcastGameState(score, 'away'), 100);
       }
     }
     setCurrentThrow('');
