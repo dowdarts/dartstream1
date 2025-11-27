@@ -102,6 +102,7 @@ function App() {
   const [pairingCode, setPairingCode] = useState(null); // 4-digit pairing code
   const [showPairingUI, setShowPairingUI] = useState(false); // Show pairing popup
   const [connectionComplete, setConnectionComplete] = useState(false); // Track if connection is set up
+  const skipNextBroadcast = useRef(false); // Flag to skip useEffect broadcast after manual broadcast
 
   const quickScores = [26, 40, 41, 43, 45, 60, 81, 85, 100, 180, 140];
 
@@ -225,6 +226,10 @@ function App() {
 
   // Broadcast state whenever key values change (including during setup)
   useEffect(() => {
+    if (skipNextBroadcast.current) {
+      skipNextBroadcast.current = false;
+      return;
+    }
     broadcastGameState();
   }, [homeScore, awayScore, currentPlayer, sets, legs, homeDartsThrown, awayDartsThrown, homeMatchScore, awayMatchScore, gameStarted, homePlayerName, awayPlayerName, gameType]);
 
@@ -411,6 +416,7 @@ function App() {
         if (score > 0) setHomeEnteredGame(true);
         
         // Broadcast score to scoreboard with new score immediately
+        skipNextBroadcast.current = true;
         broadcastGameState(score, 'home', newScore, awayScore);
         
         setCurrentPlayer('away');
@@ -469,13 +475,14 @@ function App() {
           setTonMessage(`${score} IN!`);
           setTimeout(() => setTonMessage(""), 3000);
         }
-        
         if (score > 0) setAwayEnteredGame(true);
         
         // Broadcast score to scoreboard with new score immediately
+        skipNextBroadcast.current = true;
         broadcastGameState(score, 'away', homeScore, newScore);
         
         setCurrentPlayer('home');
+        setTurnNumber(prev => prev + 1);
         setTurnNumber(prev => prev + 1);
       }
     }
