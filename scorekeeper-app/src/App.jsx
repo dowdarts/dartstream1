@@ -162,13 +162,14 @@ function App() {
   // Broadcast game state to scoreboard via Broadcast Channel API and Supabase
   const broadcastGameState = async (lastShot = null, lastShotPlayer = null, overrideHomeScore = null, overrideAwayScore = null, overrideHomeDarts = null, overrideAwayDarts = null, overrideHomeMatchScore = null, overrideAwayMatchScore = null) => {
     // Calculate averages with overrides
-    const currentHomeDarts = overrideHomeDarts !== null ? overrideHomeDarts : homeDartsThrown;
-    const currentAwayDarts = overrideAwayDarts !== null ? overrideAwayDarts : awayDartsThrown;
+    const currentHomeLegDarts = overrideHomeDarts !== null ? overrideHomeDarts : homeDartsThrown;
+    const currentAwayLegDarts = overrideAwayDarts !== null ? overrideAwayDarts : awayDartsThrown;
     const currentHomeMatchScore = overrideHomeMatchScore !== null ? overrideHomeMatchScore : homeMatchScore;
     const currentAwayMatchScore = overrideAwayMatchScore !== null ? overrideAwayMatchScore : awayMatchScore;
     
-    const homeAverage = currentHomeDarts > 0 ? (currentHomeMatchScore / currentHomeDarts) * 3 : 0;
-    const awayAverage = currentAwayDarts > 0 ? (currentAwayMatchScore / currentAwayDarts) * 3 : 0;
+    // Match average uses total match darts and total match score
+    const homeAverage = homeMatchDarts > 0 ? (currentHomeMatchScore / homeMatchDarts) * 3 : 0;
+    const awayAverage = awayMatchDarts > 0 ? (currentAwayMatchScore / awayMatchDarts) * 3 : 0;
     
     const gameState = {
       homePlayerName: homePlayerName,
@@ -178,8 +179,8 @@ function App() {
       currentPlayer,
       homeAverage,
       awayAverage,
-      homeDartsThrown: currentHomeDarts,
-      awayDartsThrown: currentAwayDarts,
+      homeDartsThrown: homeMatchDarts, // Total match darts for average calculation
+      awayDartsThrown: awayMatchDarts, // Total match darts for average calculation
       sets,
       legs,
       gameType,
