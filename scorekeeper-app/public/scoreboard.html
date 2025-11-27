@@ -513,6 +513,10 @@
             }
         }
 
+        let lastHomeScore = null;
+        let lastAwayScore = null;
+        let currentDisplayPlayer = 'home'; // Track who should be highlighted
+
         function updateScoreboard(data) {
             document.getElementById('connectionStatus').textContent = '✓ Connected - Live';
             document.getElementById('connectionStatus').className = 'connection-status connected';
@@ -525,21 +529,33 @@
                 document.getElementById('awayName').textContent = data.awayPlayerName.toUpperCase();
             }
 
+            // Check if scores changed and switch turns accordingly
+            if (data.homeScore !== undefined && lastHomeScore !== null && data.homeScore !== lastHomeScore) {
+                // Home score changed, so it's now away's turn
+                currentDisplayPlayer = 'away';
+            }
+            if (data.awayScore !== undefined && lastAwayScore !== null && data.awayScore !== lastAwayScore) {
+                // Away score changed, so it's now home's turn
+                currentDisplayPlayer = 'home';
+            }
+
             // Update scores
             if (data.homeScore !== undefined) {
+                lastHomeScore = data.homeScore;
                 document.getElementById('homeScore').textContent = data.homeScore;
             }
             if (data.awayScore !== undefined) {
+                lastAwayScore = data.awayScore;
                 document.getElementById('awayScore').textContent = data.awayScore;
             }
 
-            // Update current player highlight
+            // Update current player highlight based on score changes
             const homeSection = document.getElementById('homePlayer');
             const awaySection = document.getElementById('awayPlayer');
-            if (data.currentPlayer === 'home') {
+            if (currentDisplayPlayer === 'home') {
                 homeSection.classList.add('active');
                 awaySection.classList.remove('active');
-            } else if (data.currentPlayer === 'away') {
+            } else if (currentDisplayPlayer === 'away') {
                 awaySection.classList.add('active');
                 homeSection.classList.remove('active');
             }
