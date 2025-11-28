@@ -493,7 +493,6 @@ function App() {
         
         setCurrentPlayer('home');
         setTurnNumber(prev => prev + 1);
-        setTurnNumber(prev => prev + 1);
       }
     }
     setCurrentThrow('');
@@ -1555,24 +1554,27 @@ function App() {
 
       {/* Set Score Display with Connection Code */}
       <div className="bg-black px-1 py-0.5 flex items-center justify-between text-yellow-400 shadow-lg border-y border-gray-800">
-        <div className="text-xs font-bold tracking-wide flex gap-2">
+        <div className="text-xs font-bold tracking-wide flex items-center gap-2">
           <span>S:{sets.home}-{sets.away}</span>
           <span>L:{legs.home}-{legs.away}</span>
+          {pairingCode && (
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(pairingCode);
+                alert(`Code ${pairingCode} copied to clipboard!`);
+              }}
+              className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-black py-1 px-2 rounded shadow transition-all active:scale-95"
+              title="Click to copy connection code"
+            >
+              📡 {pairingCode}
+            </button>
+          )}
         </div>
-        {pairingCode && (
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(pairingCode);
-              alert(`Code ${pairingCode} copied to clipboard!`);
-            }}
-            className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-black py-1 px-2 rounded shadow transition-all active:scale-95"
-            title="Click to copy connection code"
-          >
-            📡 {pairingCode}
-          </button>
-        )}
+        <div className="text-xs font-bold tracking-wide text-white">
+          Shooter: {currentPlayer === 'home' ? homePlayer : awayPlayer}
+        </div>
         <div className="text-xs font-bold tracking-wide">
-          <span>Turn {turnNumber}</span>
+          <span>Round {turnNumber}</span>
         </div>
       </div>
 
@@ -1580,7 +1582,7 @@ function App() {
       <div className="bg-gray-800 border-b border-gray-700">
         <div className="px-1 grid grid-cols-3">
           <div className="text-right py-1 px-1 text-xs font-bold text-white">{homePlayer}</div>
-          <div className="text-center py-1 px-1 text-xs font-bold text-white">Turn</div>
+          <div className="text-center py-1 px-1 text-xs font-bold text-white">Round</div>
           <div className="text-left py-1 px-1 text-xs font-bold text-white">{awayPlayer}</div>
         </div>
       </div>
