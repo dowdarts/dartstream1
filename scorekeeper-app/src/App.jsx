@@ -344,59 +344,10 @@ function App() {
 
   const handleQuickScore = (score) => {
     // If in edit mode with first edit flag, replace the value
-    if (editingScore?.firstEdit) {
-      setCurrentThrow(score.toString());
-      setEditingScore({ ...editingScore, firstEdit: false });
-      return;
-    }
-    // Ton popup logic
-    if (score >= 95) {
-      let msg = "";
-      if (score >= 95 && score < 100) {
-        msg = `${score}!`;
-      } else if (score === 100) {
-        msg = "Ton!";
-      } else if (score > 100 && score < 111) {
-        msg = `${score}!`;
-      } else if (score >= 111) {
-        msg = `Ton${score - 100}!`;
-      }
-      setTonMessage(msg);
-      setTimeout(() => setTonMessage(""), 3000);
-    }
-    
     if (currentPlayer === 'home') {
       const currentScore = homeScore;
       const newScore = currentScore - score;
-      
-      // Check for bust (score goes below 0 or equals 1)
-      if (newScore < 0 || newScore === 1) {
-        // Bust: keep old score, add 0 to log, count 3 darts
-        setTonMessage("BUST!");
-        setTimeout(() => setTonMessage(""), 3000);
-        setHomeHistory(prev => [0, ...prev].slice(0, 3));
-        setScoreLog(prev => [{ player: 'home', turn: turnNumber, homeScore: 0, awayScore: null, remaining: currentScore, bust: true }, ...prev]);
-        setHomeDartsThrown(prev => prev + 3);
-        setHomeMatchDarts(prev => prev + 3);
-        setCurrentPlayer('away');
-        
-        // Broadcast bust to scoreboard
-        setTimeout(() => broadcastGameState('BUST', 'home'), 100);
-      } else if (newScore === 0 && score > 0) {
-        // Checkout - only trigger if score being entered is > 0
-        setHomeScore(newScore);
-        setHomeHistory(prev => [score, ...prev].slice(0, 3));
-        setHomeMatchScore(prev => prev + score);
-        setScoreLog(prev => [{ player: 'home', turn: turnNumber, homeScore: score, awayScore: null, remaining: newScore }, ...prev]);
-        setCheckoutPlayer('home');
-        setShowDartCount(true);
-        
-        // Broadcast checkout to scoreboard
-        setTimeout(() => broadcastGameState(`${score} CHECKOUT!`, 'home'), 100);
-      } else if (newScore === 0 && score === 0 && currentScore === 0) {
-        // Already at 0, re-trigger checkout
-        setCheckoutPlayer('home');
-        setShowDartCount(true);
+      // ...existing code...
       } else {
         // Validate: score + remaining must equal current score before throw
         if (!validateScore(score, newScore, currentScore)) {
@@ -404,12 +355,62 @@ function App() {
           setTimeout(() => setTonMessage(""), 3000);
           return;
         }
-        
         // Valid score
         setHomeScore(newScore);
         setHomeHistory(prev => [score, ...prev].slice(0, 3));
         setHomeMatchScore(prev => prev + score);
         setScoreLog(prev => [{ player: 'home', turn: turnNumber, homeScore: score, awayScore: null, remaining: newScore }, ...prev]);
+        setHomeDartsThrown(prev => prev + 3);
+        setHomeMatchDarts(prev => prev + 3);
+        // Show IN! message in double-double mode when player enters for first time
+        if (score > 0 && !homeEnteredGame && getGameMode() === 'double-double') {
+          setTonMessage(`${score} IN!`);
+          setTimeout(() => setTonMessage(""), 3000);
+        }
+        if (score > 0) setHomeEnteredGame(true);
+        // Broadcast score to scoreboard with new score immediately
+        skipNextBroadcast.current = true;
+        const newHomeDarts = homeDartsThrown + 3;
+        const newHomeMatchScore = homeMatchScore + score;
+        broadcastGameState(score, 'home', newScore, awayScore, newHomeDarts, awayDartsThrown, newHomeMatchScore, awayMatchScore);
+        setCurrentPlayer('away');
+        setTurnNumber(prev => prev + 1); // Increment round after home player's turn
+      }
+    } else {
+      const currentScore = awayScore;
+      const newScore = currentScore - score;
+      // ...existing code...
+      } else {
+        // Validate: score + remaining must equal current score before throw
+        if (!validateScore(score, newScore, currentScore)) {
+          setTonMessage("ERROR: Invalid score!");
+          setTimeout(() => setTonMessage(""), 3000);
+          return;
+        }
+        // Valid score
+        setAwayScore(newScore);
+        setAwayHistory(prev => [score, ...prev].slice(0, 3));
+        setAwayMatchScore(prev => prev + score);
+        setScoreLog(prev => [{ player: 'away', turn: turnNumber, homeScore: null, awayScore: score, remaining: newScore }, ...prev]);
+        setAwayDartsThrown(prev => prev + 3);
+        setAwayMatchDarts(prev => prev + 3);
+        // Show IN! message in double-double mode when player enters for first time
+        if (score > 0 && !awayEnteredGame && getGameMode() === 'double-double') {
+          setTonMessage(`${score} IN!`);
+          setTimeout(() => setTonMessage(""), 3000);
+        }
+        if (score > 0) setAwayEnteredGame(true);
+        // Broadcast score to scoreboard with new score immediately
+        skipNextBroadcast.current = true;
+        const newAwayDarts = awayDartsThrown + 3;
+        const newAwayMatchScore = awayMatchScore + score;
+        broadcastGameState(score, 'away', homeScore, newScore, homeDartsThrown, newAwayDarts, homeMatchScore, newAwayMatchScore);
+        setCurrentPlayer('home');
+        setTurnNumber(prev => prev + 1); // Increment round after away player's turn
+      }
+    }
+    setCurrentThrow('');
+  };
         setHomeDartsThrown(prev => prev + 3);
         setHomeMatchDarts(prev => prev + 3);
         
