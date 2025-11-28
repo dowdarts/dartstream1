@@ -87,6 +87,15 @@
             background: #fcd34d;
         }
 
+        .hidden {
+            display: none;
+        }
+
+        .manual-text {
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
+
         .matches-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -252,7 +261,7 @@
             <!-- Matches will be populated here -->
         </div>
 
-        <div id="emptyState" class="empty-state" style="display: none;">
+        <div id="emptyState" class="empty-state hidden">
             <div class="empty-state-icon"></div>
             <h2>No Active Matches</h2>
             <p>Waiting for scoring apps to create matches...</p>
@@ -260,7 +269,7 @@
 
         <div class="manual-connect">
             <h3>Manual Connection</h3>
-            <p style="color: #94a3b8; margin-bottom: 1rem;">Enter a 4-digit code to connect directly</p>
+            <p class="manual-text">Enter a 4-digit code to connect directly</p>
             <input type="text" id="manualCode" class="code-input" placeholder="0000" maxlength="4" onkeypress="if(event.key === 'Enter') connectManually()">
             <button class="connect-btn" onclick="connectManually()">Connect</button>
         </div>
