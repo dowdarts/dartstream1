@@ -1,1 +1,210 @@
-/* App styles are handled by Tailwind CSS in index.css */
+/* App.css - Enhanced Interactive UI */
+#root {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Button Enhancements */
+button {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  font-weight: 800;
+  letter-spacing: 0.025em;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.2);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Number Pad Buttons - Extra Large and Clear */
+button.bg-gradient-to-b.from-gray-100 {
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 900;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Quick Score Buttons - Green Glow */
+button.from-green-600 {
+  box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+button.from-green-600:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.6), 0 10px 15px -3px rgba(34, 197, 94, 0.5);
+}
+
+/* Red Buttons - Warning Glow */
+button.from-red-700 {
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+button.from-red-700:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.6), 0 10px 15px -3px rgba(239, 68, 68, 0.5);
+}
+
+/* Blue Buttons - Info Glow */
+button.from-blue-600 {
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+button.from-blue-600:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.6), 0 10px 15px -3px rgba(37, 99, 235, 0.5);
+}
+
+/* Yellow Buttons - Accent Glow */
+button.from-yellow-400 {
+  box-shadow: 0 4px 6px -1px rgba(250, 204, 21, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+button.from-yellow-400:hover:not(:disabled) {
+  box-shadow: 0 0 25px rgba(250, 204, 21, 0.8), 0 10px 15px -3px rgba(250, 204, 21, 0.6);
+}
+
+/* Purple Buttons */
+button.from-purple-600 {
+  box-shadow: 0 4px 6px -1px rgba(147, 51, 234, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+button.from-purple-600:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(147, 51, 234, 0.6), 0 10px 15px -3px rgba(147, 51, 234, 0.5);
+}
+
+/* Gray Buttons - Subtle */
+button.from-gray-600,
+button.from-gray-700 {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 15px currentColor;
+  }
+  50% {
+    opacity: 0.8;
+    box-shadow: 0 0 25px currentColor;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-pulse {
+  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Score Cards - Enhanced */
+.ring-4 {
+  box-shadow: 0 0 30px rgba(250, 204, 21, 0.5), inset 0 0 20px rgba(250, 204, 21, 0.1);
+}
+
+/* Input Fields */
+input[type="text"],
+input[type="number"] {
+  transition: all 0.2s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+  box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  transform: scale(1.02);
+}
+
+/* Table Rows */
+tr {
+  transition: background-color 0.15s ease;
+}
+
+tr:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #444, #222);
+  border-radius: 5px;
+  border: 2px solid #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #555, #333);
+}
+
+/* Modal Overlays */
+.bg-opacity-80,
+.bg-opacity-90 {
+  backdrop-filter: blur(8px);
+}
+
+/* Card Backgrounds */
+.bg-gray-800 {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bg-gradient-to-b.from-gray-800 {
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+}
+
+/* Responsive touch targets */
+@media (hover: none) and (pointer: coarse) {
+  button {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}
+
+/* Smooth page transitions */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
