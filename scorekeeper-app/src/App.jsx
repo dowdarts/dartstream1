@@ -4,8 +4,6 @@ import './App.css';
 function App() {
     // Broadcast channel for scoreboard communication (local)
     const broadcastChannel = useRef(null);
-    // Ad bar engaged state
-    const [adBarEngaged, setAdBarEngaged] = useState(false);
     
     useEffect(() => {
       // Initialize broadcast channel
@@ -346,10 +344,59 @@ function App() {
 
   const handleQuickScore = (score) => {
     // If in edit mode with first edit flag, replace the value
+    if (editingScore?.firstEdit) {
+      setCurrentThrow(score.toString());
+      setEditingScore({ ...editingScore, firstEdit: false });
+      return;
+    }
+    // Ton popup logic
+    if (score >= 95) {
+      let msg = "";
+      if (score >= 95 && score < 100) {
+        msg = `${score}!`;
+      } else if (score === 100) {
+        msg = "Ton!";
+      } else if (score > 100 && score < 111) {
+        msg = `${score}!`;
+      } else if (score >= 111) {
+        msg = `Ton${score - 100}!`;
+      }
+      setTonMessage(msg);
+      setTimeout(() => setTonMessage(""), 3000);
+    }
+    
     if (currentPlayer === 'home') {
       const currentScore = homeScore;
       const newScore = currentScore - score;
-      // ...existing code...
+      
+      // Check for bust (score goes below 0 or equals 1)
+      if (newScore < 0 || newScore === 1) {
+        // Bust: keep old score, add 0 to log, count 3 darts
+        setTonMessage("BUST!");
+        setTimeout(() => setTonMessage(""), 3000);
+        setHomeHistory(prev => [0, ...prev].slice(0, 3));
+        setScoreLog(prev => [{ player: 'home', turn: turnNumber, homeScore: 0, awayScore: null, remaining: currentScore, bust: true }, ...prev]);
+        setHomeDartsThrown(prev => prev + 3);
+        setHomeMatchDarts(prev => prev + 3);
+        setCurrentPlayer('away');
+        
+        // Broadcast bust to scoreboard
+        setTimeout(() => broadcastGameState('BUST', 'home'), 100);
+      } else if (newScore === 0 && score > 0) {
+        // Checkout - only trigger if score being entered is > 0
+        setHomeScore(newScore);
+        setHomeHistory(prev => [score, ...prev].slice(0, 3));
+        setHomeMatchScore(prev => prev + score);
+        setScoreLog(prev => [{ player: 'home', turn: turnNumber, homeScore: score, awayScore: null, remaining: newScore }, ...prev]);
+        setCheckoutPlayer('home');
+        setShowDartCount(true);
+        
+        // Broadcast checkout to scoreboard
+        setTimeout(() => broadcastGameState(`${score} CHECKOUT!`, 'home'), 100);
+      } else if (newScore === 0 && score === 0 && currentScore === 0) {
+        // Already at 0, re-trigger checkout
+        setCheckoutPlayer('home');
+        setShowDartCount(true);
       } else {
         // Validate: score + remaining must equal current score before throw
         if (!validateScore(score, newScore, currentScore)) {
@@ -357,62 +404,12 @@ function App() {
           setTimeout(() => setTonMessage(""), 3000);
           return;
         }
+        
         // Valid score
         setHomeScore(newScore);
         setHomeHistory(prev => [score, ...prev].slice(0, 3));
         setHomeMatchScore(prev => prev + score);
         setScoreLog(prev => [{ player: 'home', turn: turnNumber, homeScore: score, awayScore: null, remaining: newScore }, ...prev]);
-        setHomeDartsThrown(prev => prev + 3);
-        setHomeMatchDarts(prev => prev + 3);
-        // Show IN! message in double-double mode when player enters for first time
-        if (score > 0 && !homeEnteredGame && getGameMode() === 'double-double') {
-          setTonMessage(`${score} IN!`);
-          setTimeout(() => setTonMessage(""), 3000);
-        }
-        if (score > 0) setHomeEnteredGame(true);
-        // Broadcast score to scoreboard with new score immediately
-        skipNextBroadcast.current = true;
-        const newHomeDarts = homeDartsThrown + 3;
-        const newHomeMatchScore = homeMatchScore + score;
-        broadcastGameState(score, 'home', newScore, awayScore, newHomeDarts, awayDartsThrown, newHomeMatchScore, awayMatchScore);
-        setCurrentPlayer('away');
-        setTurnNumber(prev => prev + 1); // Increment round after home player's turn
-      }
-    } else {
-      const currentScore = awayScore;
-      const newScore = currentScore - score;
-      // ...existing code...
-      } else {
-        // Validate: score + remaining must equal current score before throw
-        if (!validateScore(score, newScore, currentScore)) {
-          setTonMessage("ERROR: Invalid score!");
-          setTimeout(() => setTonMessage(""), 3000);
-          return;
-        }
-        // Valid score
-        setAwayScore(newScore);
-        setAwayHistory(prev => [score, ...prev].slice(0, 3));
-        setAwayMatchScore(prev => prev + score);
-        setScoreLog(prev => [{ player: 'away', turn: turnNumber, homeScore: null, awayScore: score, remaining: newScore }, ...prev]);
-        setAwayDartsThrown(prev => prev + 3);
-        setAwayMatchDarts(prev => prev + 3);
-        // Show IN! message in double-double mode when player enters for first time
-        if (score > 0 && !awayEnteredGame && getGameMode() === 'double-double') {
-          setTonMessage(`${score} IN!`);
-          setTimeout(() => setTonMessage(""), 3000);
-        }
-        if (score > 0) setAwayEnteredGame(true);
-        // Broadcast score to scoreboard with new score immediately
-        skipNextBroadcast.current = true;
-        const newAwayDarts = awayDartsThrown + 3;
-        const newAwayMatchScore = awayMatchScore + score;
-        broadcastGameState(score, 'away', homeScore, newScore, homeDartsThrown, newAwayDarts, homeMatchScore, newAwayMatchScore);
-        setCurrentPlayer('home');
-        setTurnNumber(prev => prev + 1); // Increment round after away player's turn
-      }
-    }
-    setCurrentThrow('');
-  };
         setHomeDartsThrown(prev => prev + 3);
         setHomeMatchDarts(prev => prev + 3);
         
@@ -495,6 +492,7 @@ function App() {
         broadcastGameState(score, 'away', homeScore, newScore, homeDartsThrown, newAwayDarts, homeMatchScore, newAwayMatchScore);
         
         setCurrentPlayer('home');
+        setTurnNumber(prev => prev + 1);
         setTurnNumber(prev => prev + 1);
       }
     }
@@ -1557,27 +1555,24 @@ function App() {
 
       {/* Set Score Display with Connection Code */}
       <div className="bg-black px-1 py-0.5 flex items-center justify-between text-yellow-400 shadow-lg border-y border-gray-800">
-        <div className="text-xs font-bold tracking-wide flex items-center gap-2">
+        <div className="text-xs font-bold tracking-wide flex gap-2">
           <span>S:{sets.home}-{sets.away}</span>
           <span>L:{legs.home}-{legs.away}</span>
-          {pairingCode && (
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(pairingCode);
-                alert(`Code ${pairingCode} copied to clipboard!`);
-              }}
-              className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-black py-1 px-2 rounded shadow transition-all active:scale-95"
-              title="Click to copy connection code"
-            >
-              📡 {pairingCode}
-            </button>
-          )}
         </div>
-        <div className="text-xs font-bold tracking-wide text-white">
-          Shooter: {currentPlayer === 'home' ? homePlayer : awayPlayer}
-        </div>
+        {pairingCode && (
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(pairingCode);
+              alert(`Code ${pairingCode} copied to clipboard!`);
+            }}
+            className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-black py-1 px-2 rounded shadow transition-all active:scale-95"
+            title="Click to copy connection code"
+          >
+            📡 {pairingCode}
+          </button>
+        )}
         <div className="text-xs font-bold tracking-wide">
-          <span>Round {turnNumber}</span>
+          <span>Turn {turnNumber}</span>
         </div>
       </div>
 
@@ -1585,7 +1580,7 @@ function App() {
       <div className="bg-gray-800 border-b border-gray-700">
         <div className="px-1 grid grid-cols-3">
           <div className="text-right py-1 px-1 text-xs font-bold text-white">{homePlayer}</div>
-          <div className="text-center py-1 px-1 text-xs font-bold text-white">Round</div>
+          <div className="text-center py-1 px-1 text-xs font-bold text-white">Turn</div>
           <div className="text-left py-1 px-1 text-xs font-bold text-white">{awayPlayer}</div>
         </div>
       </div>
@@ -1639,84 +1634,79 @@ function App() {
         </div>
       </div>
 
-      {/* Action Buttons, Number Pad, and Quick Scores hidden when adBarEngaged */}
-      {!adBarEngaged && (
-        <>
-          {/* Action Buttons */}
-          <div className="grid grid-cols-3 gap-1 px-1 py-0.5 bg-black">
+      {/* Action Buttons */}
+      <div className="grid grid-cols-3 gap-1 px-1 py-0.5 bg-black">
+        <button 
+          onClick={handleBack}
+          className="bg-gradient-to-b from-red-700 to-red-800 hover:from-red-600 hover:to-red-700 text-white text-xs font-black py-0.5 rounded shadow-lg transition-all active:scale-95"
+        >
+          {scoreLog.length > 0 ? 'UNDO' : (scoreLog.length === 0 && previousLegData ? 'PREV' : 'BACK')}
+        </button>
+        <div className="bg-black text-yellow-400 text-sm font-black py-0.5 rounded border border-yellow-400 shadow-lg flex items-center justify-center">
+          {currentThrow || (
+            getGameMode() === 'double-double' 
+              ? ((currentPlayer === 'home' && !homeEnteredGame) || (currentPlayer === 'away' && !awayEnteredGame) ? 'Dbl' : '')
+              : ((currentPlayer === 'home' && !homeEnteredGame) || (currentPlayer === 'away' && !awayEnteredGame) ? 'Str' : '')
+          )}
+        </div>
+        <button 
+          onClick={handleMiss}
+          className={`${currentThrow ? 'bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600' : 'bg-gradient-to-b from-red-700 to-red-800 hover:from-red-600 hover:to-red-700'} text-white text-xs font-black py-0.5 rounded shadow-lg transition-all active:scale-95`}
+        >
+          {currentThrow ? 'ENTER' : 'MISS'}
+        </button>
+      </div>
+
+      {/* Number Pad */}
+      <div className="grid grid-cols-10 gap-1 px-1 py-0.5 bg-black">
+        {/* Left side - Quick scores */}
+        <div className="grid grid-rows-3 gap-1">
+          <button onClick={() => !currentThrow && handleQuickScore(26)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>26</button>
+          <button onClick={() => !currentThrow && handleQuickScore(41)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>41</button>
+          <button onClick={() => !currentThrow && handleQuickScore(60)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>60</button>
+        </div>
+
+        {/* Center - Number pad */}
+        <div className="col-span-8 grid grid-cols-3 gap-1">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
             <button 
-              onClick={handleBack}
-              className="bg-gradient-to-b from-red-700 to-red-800 hover:from-red-600 hover:to-red-700 text-white text-xs font-black py-0.5 rounded shadow-lg transition-all active:scale-95"
+              key={num}
+              onClick={() => handleNumberClick(num.toString())}
+              className="bg-gradient-to-b from-gray-100 to-gray-200 hover:from-white hover:to-gray-100 text-black text-lg md:text-2xl lg:text-4xl font-black py-0.5 md:py-1 lg:py-2 rounded shadow-lg transition-all active:scale-95"
             >
-              {scoreLog.length > 0 ? 'UNDO' : (scoreLog.length === 0 && previousLegData ? 'PREV' : 'BACK')}
+              {num}
             </button>
-            <div className="bg-black text-yellow-400 text-sm font-black py-0.5 rounded border border-yellow-400 shadow-lg flex items-center justify-center">
-              {currentThrow || (
-                getGameMode() === 'double-double' 
-                  ? ((currentPlayer === 'home' && !homeEnteredGame) || (currentPlayer === 'away' && !awayEnteredGame) ? 'Dbl' : '')
-                  : ((currentPlayer === 'home' && !homeEnteredGame) || (currentPlayer === 'away' && !awayEnteredGame) ? 'Str' : '')
-              )}
-            </div>
-            <button 
-              onClick={handleMiss}
-              className={`${currentThrow ? 'bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600' : 'bg-gradient-to-b from-red-700 to-red-800 hover:from-red-600 hover:to-red-700'} text-white text-xs font-black py-0.5 rounded shadow-lg transition-all active:scale-95`}
-            >
-              {currentThrow ? 'ENTER' : 'MISS'}
-            </button>
-          </div>
+          ))}
+        </div>
 
-          {/* Number Pad */}
-          <div className="grid grid-cols-10 gap-1 px-1 py-0.5 bg-black">
-            {/* Left side - Quick scores */}
-            <div className="grid grid-rows-3 gap-1">
-              <button onClick={() => !currentThrow && handleQuickScore(26)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>26</button>
-              <button onClick={() => !currentThrow && handleQuickScore(41)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>41</button>
-              <button onClick={() => !currentThrow && handleQuickScore(60)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>60</button>
-            </div>
+        {/* Right side - Quick scores */}
+        <div className="grid grid-rows-3 gap-1">
+          <button onClick={() => !currentThrow && handleQuickScore(45)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>45</button>
+          <button onClick={() => !currentThrow && handleQuickScore(81)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>81</button>
+          <button onClick={() => !currentThrow && handleQuickScore(85)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>85</button>
+        </div>
+      </div>
 
-            {/* Center - Number pad */}
-            <div className="col-span-8 grid grid-cols-3 gap-1">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                <button 
-                  key={num}
-                  onClick={() => handleNumberClick(num.toString())}
-                  className="bg-gradient-to-b from-gray-100 to-gray-200 hover:from-white hover:to-gray-100 text-black text-lg md:text-2xl lg:text-4xl font-black py-0.5 md:py-1 lg:py-2 rounded shadow-lg transition-all active:scale-95"
-                >
-                  {num}
-                </button>
-              ))}
-            </div>
-
-            {/* Right side - Quick scores */}
-            <div className="grid grid-rows-3 gap-1">
-              <button onClick={() => !currentThrow && handleQuickScore(45)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>45</button>
-              <button onClick={() => !currentThrow && handleQuickScore(81)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>81</button>
-              <button onClick={() => !currentThrow && handleQuickScore(85)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>85</button>
-            </div>
-          </div>
-
-          {/* Bottom Quick Scores */}
-          <div className="grid grid-cols-3 gap-1 px-1 pb-0.5 bg-black">
-            {currentThrow ? (
-              <>
-                <button onClick={handleMultiply} className="bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-base font-black py-0.5 rounded shadow-lg transition-all active:scale-95">×</button>
-                <button onClick={() => handleNumberClick('0')} className="bg-gradient-to-b from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white text-base font-black py-0.5 rounded shadow-lg transition-all active:scale-95">0</button>
-                <button onClick={handleAdd} className="bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-base font-black py-0.5 rounded shadow-lg transition-all active:scale-95">+</button>
-              </>
+      {/* Bottom Quick Scores */}
+      <div className="grid grid-cols-3 gap-1 px-1 pb-0.5 bg-black">
+        {currentThrow ? (
+          <>
+            <button onClick={handleMultiply} className="bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-base font-black py-0.5 rounded shadow-lg transition-all active:scale-95">×</button>
+            <button onClick={() => handleNumberClick('0')} className="bg-gradient-to-b from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white text-base font-black py-0.5 rounded shadow-lg transition-all active:scale-95">0</button>
+            <button onClick={handleAdd} className="bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-base font-black py-0.5 rounded shadow-lg transition-all active:scale-95">+</button>
+          </>
+        ) : (
+          <>
+            <button onClick={() => handleQuickScore(100)} className="bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-sm font-black py-0.5 rounded shadow-lg transition-all active:scale-95">100</button>
+            {((currentPlayer === 'home' && homeScore <= 170) || (currentPlayer === 'away' && awayScore <= 170)) ? (
+              <button onClick={handleBust} className="bg-gradient-to-b from-red-700 to-red-800 hover:from-red-600 hover:to-red-700 text-white text-sm font-black py-0.5 rounded shadow-lg transition-all active:scale-95">BUST</button>
             ) : (
-              <>
-                <button onClick={() => handleQuickScore(100)} className="bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-sm font-black py-0.5 rounded shadow-lg transition-all active:scale-95">100</button>
-                {((currentPlayer === 'home' && homeScore <= 170) || (currentPlayer === 'away' && awayScore <= 170)) ? (
-                  <button onClick={handleBust} className="bg-gradient-to-b from-red-700 to-red-800 hover:from-red-600 hover:to-red-700 text-white text-sm font-black py-0.5 rounded shadow-lg transition-all active:scale-95">BUST</button>
-                ) : (
-                  <button onClick={() => handleQuickScore(180)} className="bg-gradient-to-b from-red-700 to-red-800 hover:from-red-600 hover:to-red-700 text-white text-sm font-black py-0.5 rounded shadow-lg transition-all active:scale-95">180</button>
-                )}
-                <button onClick={() => handleQuickScore(140)} className="bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-sm font-black py-0.5 rounded shadow-lg transition-all active:scale-95">140</button>
-              </>
+              <button onClick={() => handleQuickScore(180)} className="bg-gradient-to-b from-red-700 to-red-800 hover:from-red-600 hover:to-red-700 text-white text-sm font-black py-0.5 rounded shadow-lg transition-all active:scale-95">180</button>
             )}
-          </div>
-        </>
-      )}
+            <button onClick={() => handleQuickScore(140)} className="bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-sm font-black py-0.5 rounded shadow-lg transition-all active:scale-95">140</button>
+          </>
+        )}
+      </div>
 
       {/* Dart Count Selection Modal */}
       {showDartCount && (
