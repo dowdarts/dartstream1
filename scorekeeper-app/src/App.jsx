@@ -4,6 +4,8 @@ import './App.css';
 function App() {
     // Broadcast channel for scoreboard communication (local)
     const broadcastChannel = useRef(null);
+    // Ad bar engaged state
+    const [adBarEngaged, setAdBarEngaged] = useState(false);
     
     useEffect(() => {
       // Initialize broadcast channel
@@ -1637,79 +1639,84 @@ function App() {
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="grid grid-cols-3 gap-1 px-1 py-0.5 bg-black">
-        <button 
-          onClick={handleBack}
-          className="bg-gradient-to-b from-red-700 to-red-800 hover:from-red-600 hover:to-red-700 text-white text-xs font-black py-0.5 rounded shadow-lg transition-all active:scale-95"
-        >
-          {scoreLog.length > 0 ? 'UNDO' : (scoreLog.length === 0 && previousLegData ? 'PREV' : 'BACK')}
-        </button>
-        <div className="bg-black text-yellow-400 text-sm font-black py-0.5 rounded border border-yellow-400 shadow-lg flex items-center justify-center">
-          {currentThrow || (
-            getGameMode() === 'double-double' 
-              ? ((currentPlayer === 'home' && !homeEnteredGame) || (currentPlayer === 'away' && !awayEnteredGame) ? 'Dbl' : '')
-              : ((currentPlayer === 'home' && !homeEnteredGame) || (currentPlayer === 'away' && !awayEnteredGame) ? 'Str' : '')
-          )}
-        </div>
-        <button 
-          onClick={handleMiss}
-          className={`${currentThrow ? 'bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600' : 'bg-gradient-to-b from-red-700 to-red-800 hover:from-red-600 hover:to-red-700'} text-white text-xs font-black py-0.5 rounded shadow-lg transition-all active:scale-95`}
-        >
-          {currentThrow ? 'ENTER' : 'MISS'}
-        </button>
-      </div>
-
-      {/* Number Pad */}
-      <div className="grid grid-cols-10 gap-1 px-1 py-0.5 bg-black">
-        {/* Left side - Quick scores */}
-        <div className="grid grid-rows-3 gap-1">
-          <button onClick={() => !currentThrow && handleQuickScore(26)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>26</button>
-          <button onClick={() => !currentThrow && handleQuickScore(41)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>41</button>
-          <button onClick={() => !currentThrow && handleQuickScore(60)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>60</button>
-        </div>
-
-        {/* Center - Number pad */}
-        <div className="col-span-8 grid grid-cols-3 gap-1">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+      {/* Action Buttons, Number Pad, and Quick Scores hidden when adBarEngaged */}
+      {!adBarEngaged && (
+        <>
+          {/* Action Buttons */}
+          <div className="grid grid-cols-3 gap-1 px-1 py-0.5 bg-black">
             <button 
-              key={num}
-              onClick={() => handleNumberClick(num.toString())}
-              className="bg-gradient-to-b from-gray-100 to-gray-200 hover:from-white hover:to-gray-100 text-black text-lg md:text-2xl lg:text-4xl font-black py-0.5 md:py-1 lg:py-2 rounded shadow-lg transition-all active:scale-95"
+              onClick={handleBack}
+              className="bg-gradient-to-b from-red-700 to-red-800 hover:from-red-600 hover:to-red-700 text-white text-xs font-black py-0.5 rounded shadow-lg transition-all active:scale-95"
             >
-              {num}
+              {scoreLog.length > 0 ? 'UNDO' : (scoreLog.length === 0 && previousLegData ? 'PREV' : 'BACK')}
             </button>
-          ))}
-        </div>
+            <div className="bg-black text-yellow-400 text-sm font-black py-0.5 rounded border border-yellow-400 shadow-lg flex items-center justify-center">
+              {currentThrow || (
+                getGameMode() === 'double-double' 
+                  ? ((currentPlayer === 'home' && !homeEnteredGame) || (currentPlayer === 'away' && !awayEnteredGame) ? 'Dbl' : '')
+                  : ((currentPlayer === 'home' && !homeEnteredGame) || (currentPlayer === 'away' && !awayEnteredGame) ? 'Str' : '')
+              )}
+            </div>
+            <button 
+              onClick={handleMiss}
+              className={`${currentThrow ? 'bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600' : 'bg-gradient-to-b from-red-700 to-red-800 hover:from-red-600 hover:to-red-700'} text-white text-xs font-black py-0.5 rounded shadow-lg transition-all active:scale-95`}
+            >
+              {currentThrow ? 'ENTER' : 'MISS'}
+            </button>
+          </div>
 
-        {/* Right side - Quick scores */}
-        <div className="grid grid-rows-3 gap-1">
-          <button onClick={() => !currentThrow && handleQuickScore(45)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>45</button>
-          <button onClick={() => !currentThrow && handleQuickScore(81)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>81</button>
-          <button onClick={() => !currentThrow && handleQuickScore(85)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>85</button>
-        </div>
-      </div>
+          {/* Number Pad */}
+          <div className="grid grid-cols-10 gap-1 px-1 py-0.5 bg-black">
+            {/* Left side - Quick scores */}
+            <div className="grid grid-rows-3 gap-1">
+              <button onClick={() => !currentThrow && handleQuickScore(26)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>26</button>
+              <button onClick={() => !currentThrow && handleQuickScore(41)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>41</button>
+              <button onClick={() => !currentThrow && handleQuickScore(60)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>60</button>
+            </div>
 
-      {/* Bottom Quick Scores */}
-      <div className="grid grid-cols-3 gap-1 px-1 pb-0.5 bg-black">
-        {currentThrow ? (
-          <>
-            <button onClick={handleMultiply} className="bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-base font-black py-0.5 rounded shadow-lg transition-all active:scale-95">×</button>
-            <button onClick={() => handleNumberClick('0')} className="bg-gradient-to-b from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white text-base font-black py-0.5 rounded shadow-lg transition-all active:scale-95">0</button>
-            <button onClick={handleAdd} className="bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-base font-black py-0.5 rounded shadow-lg transition-all active:scale-95">+</button>
-          </>
-        ) : (
-          <>
-            <button onClick={() => handleQuickScore(100)} className="bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-sm font-black py-0.5 rounded shadow-lg transition-all active:scale-95">100</button>
-            {((currentPlayer === 'home' && homeScore <= 170) || (currentPlayer === 'away' && awayScore <= 170)) ? (
-              <button onClick={handleBust} className="bg-gradient-to-b from-red-700 to-red-800 hover:from-red-600 hover:to-red-700 text-white text-sm font-black py-0.5 rounded shadow-lg transition-all active:scale-95">BUST</button>
+            {/* Center - Number pad */}
+            <div className="col-span-8 grid grid-cols-3 gap-1">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+                <button 
+                  key={num}
+                  onClick={() => handleNumberClick(num.toString())}
+                  className="bg-gradient-to-b from-gray-100 to-gray-200 hover:from-white hover:to-gray-100 text-black text-lg md:text-2xl lg:text-4xl font-black py-0.5 md:py-1 lg:py-2 rounded shadow-lg transition-all active:scale-95"
+                >
+                  {num}
+                </button>
+              ))}
+            </div>
+
+            {/* Right side - Quick scores */}
+            <div className="grid grid-rows-3 gap-1">
+              <button onClick={() => !currentThrow && handleQuickScore(45)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>45</button>
+              <button onClick={() => !currentThrow && handleQuickScore(81)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>81</button>
+              <button onClick={() => !currentThrow && handleQuickScore(85)} disabled={!!currentThrow} className={`text-white text-xs font-bold py-0.5 px-0.5 rounded shadow-sm transition-all ${currentThrow ? 'bg-gray-900 opacity-40 cursor-not-allowed' : 'bg-gradient-to-b from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 active:scale-95'}`}>85</button>
+            </div>
+          </div>
+
+          {/* Bottom Quick Scores */}
+          <div className="grid grid-cols-3 gap-1 px-1 pb-0.5 bg-black">
+            {currentThrow ? (
+              <>
+                <button onClick={handleMultiply} className="bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-base font-black py-0.5 rounded shadow-lg transition-all active:scale-95">×</button>
+                <button onClick={() => handleNumberClick('0')} className="bg-gradient-to-b from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white text-base font-black py-0.5 rounded shadow-lg transition-all active:scale-95">0</button>
+                <button onClick={handleAdd} className="bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-base font-black py-0.5 rounded shadow-lg transition-all active:scale-95">+</button>
+              </>
             ) : (
-              <button onClick={() => handleQuickScore(180)} className="bg-gradient-to-b from-red-700 to-red-800 hover:from-red-600 hover:to-red-700 text-white text-sm font-black py-0.5 rounded shadow-lg transition-all active:scale-95">180</button>
+              <>
+                <button onClick={() => handleQuickScore(100)} className="bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-sm font-black py-0.5 rounded shadow-lg transition-all active:scale-95">100</button>
+                {((currentPlayer === 'home' && homeScore <= 170) || (currentPlayer === 'away' && awayScore <= 170)) ? (
+                  <button onClick={handleBust} className="bg-gradient-to-b from-red-700 to-red-800 hover:from-red-600 hover:to-red-700 text-white text-sm font-black py-0.5 rounded shadow-lg transition-all active:scale-95">BUST</button>
+                ) : (
+                  <button onClick={() => handleQuickScore(180)} className="bg-gradient-to-b from-red-700 to-red-800 hover:from-red-600 hover:to-red-700 text-white text-sm font-black py-0.5 rounded shadow-lg transition-all active:scale-95">180</button>
+                )}
+                <button onClick={() => handleQuickScore(140)} className="bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-sm font-black py-0.5 rounded shadow-lg transition-all active:scale-95">140</button>
+              </>
             )}
-            <button onClick={() => handleQuickScore(140)} className="bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-sm font-black py-0.5 rounded shadow-lg transition-all active:scale-95">140</button>
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
 
       {/* Dart Count Selection Modal */}
       {showDartCount && (
