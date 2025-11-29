@@ -1,32 +1,80 @@
-/* App.css - Enhanced Interactive UI */
+/* App.css - Premium Modern UI */
+
+/* Animated Background */
 #root {
   width: 100%;
   height: 100vh;
   margin: 0;
   padding: 0;
   overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
 }
 
-/* Button Enhancements */
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Glass Morphism Container */
+.glass-container {
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+/* Premium Button Styles */
 button {
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   cursor: pointer;
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   font-weight: 800;
-  letter-spacing: 0.025em;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.05em;
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.3),
+    0 8px 10px -6px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+button:hover::before {
+  left: 100%;
 }
 
 button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 
+    0 20px 35px -8px rgba(0, 0, 0, 0.4),
+    0 12px 15px -8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 0 30px rgba(255, 255, 255, 0.2);
 }
 
 button:active:not(:disabled) {
-  transform: translateY(0) scale(0.98);
-  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px) scale(0.98);
+  box-shadow: 
+    0 5px 15px -3px rgba(0, 0, 0, 0.3),
+    0 3px 6px -3px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 button:disabled {
@@ -34,53 +82,106 @@ button:disabled {
   opacity: 0.5;
 }
 
-/* Number Pad Buttons - Extra Large and Clear */
+/* Number Pad Buttons - 3D Effect */
 button.bg-gradient-to-b.from-gray-100 {
   font-size: clamp(2rem, 5vw, 4rem);
   font-weight: 900;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-  border: 2px solid rgba(0, 0, 0, 0.1);
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 10px rgba(255, 255, 255, 0.5);
+  background: linear-gradient(145deg, #ffffff, #e0e0e0);
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* Quick Score Buttons - Green Glow */
+button.bg-gradient-to-b.from-gray-100:hover {
+  background: linear-gradient(145deg, #ffffff, #f5f5f5);
+  box-shadow: 
+    0 15px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 0 40px rgba(255, 255, 255, 0.4);
+}
+
+/* Checkout Score Buttons - Neon Green Glow */
 button.from-green-600 {
-  box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(145deg, #10b981, #059669);
+  box-shadow: 
+    0 8px 25px rgba(16, 185, 129, 0.5),
+    0 4px 10px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 0 30px rgba(16, 185, 129, 0.3);
+  border: 2px solid rgba(16, 185, 129, 0.6);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
-button.from-green-600:hover:not(:disabled) {
-  box-shadow: 0 0 20px rgba(34, 197, 94, 0.6), 0 10px 15px -3px rgba(34, 197, 94, 0.5);
+button.from-green-600:hover {
+  box-shadow: 
+    0 12px 35px rgba(16, 185, 129, 0.6),
+    0 6px 15px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 0 50px rgba(16, 185, 129, 0.5);
 }
 
-/* Red Buttons - Warning Glow */
-button.from-red-700 {
-  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+/* Red Buttons - Danger Glow */
+button.from-red-700,
+button.from-red-600 {
+  background: linear-gradient(145deg, #ef4444, #dc2626);
+  box-shadow: 
+    0 8px 25px rgba(239, 68, 68, 0.5),
+    0 4px 10px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 0 30px rgba(239, 68, 68, 0.3);
+  border: 2px solid rgba(239, 68, 68, 0.6);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
-button.from-red-700:hover:not(:disabled) {
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.6), 0 10px 15px -3px rgba(239, 68, 68, 0.5);
+button.from-red-700:hover:not(:disabled),
+button.from-red-600:hover:not(:disabled) {
+  box-shadow: 
+    0 12px 35px rgba(239, 68, 68, 0.6),
+    0 6px 15px rgba(0, 0, 0, 0.4),
+    0 0 50px rgba(239, 68, 68, 0.5);
 }
 
-/* Blue Buttons - Info Glow */
+/* Blue Buttons - Electric Glow */
 button.from-blue-600 {
-  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(145deg, #3b82f6, #2563eb);
+  box-shadow: 
+    0 8px 25px rgba(59, 130, 246, 0.5),
+    0 4px 10px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 0 30px rgba(59, 130, 246, 0.3);
+  border: 2px solid rgba(59, 130, 246, 0.6);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 button.from-blue-600:hover:not(:disabled) {
-  box-shadow: 0 0 20px rgba(37, 99, 235, 0.6), 0 10px 15px -3px rgba(37, 99, 235, 0.5);
+  box-shadow: 
+    0 12px 35px rgba(59, 130, 246, 0.6),
+    0 6px 15px rgba(0, 0, 0, 0.4),
+    0 0 50px rgba(59, 130, 246, 0.5);
 }
 
-/* Yellow Buttons - Accent Glow */
+/* Yellow Buttons - Gold Shine */
 button.from-yellow-400 {
-  box-shadow: 0 4px 6px -1px rgba(250, 204, 21, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(145deg, #fbbf24, #f59e0b);
+  box-shadow: 
+    0 8px 25px rgba(251, 191, 36, 0.5),
+    0 4px 10px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 0 30px rgba(251, 191, 36, 0.4);
+  border: 2px solid rgba(251, 191, 36, 0.6);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 button.from-yellow-400:hover:not(:disabled) {
-  box-shadow: 0 0 25px rgba(250, 204, 21, 0.8), 0 10px 15px -3px rgba(250, 204, 21, 0.6);
+  box-shadow: 
+    0 12px 35px rgba(251, 191, 36, 0.6),
+    0 6px 15px rgba(0, 0, 0, 0.4),
+    0 0 50px rgba(251, 191, 36, 0.6);
 }
 
 /* Purple Buttons */
