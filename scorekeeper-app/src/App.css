@@ -180,6 +180,7 @@ tr:hover {
 /* Modal Overlays */
 .bg-opacity-80,
 .bg-opacity-90 {
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 }
 
