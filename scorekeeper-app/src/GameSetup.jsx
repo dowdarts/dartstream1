@@ -30,7 +30,7 @@ function GameSetup({ onGameStart }) {
   if (currentStep === 'welcome') {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="glass-container max-w-2xl w-full p-8 text-center animate-fade-in">
+        <div className="glass-container max-w-md w-full p-8 text-center animate-fade-in">
           <h1 className="text-6xl font-black mb-4 text-white drop-shadow-lg">
             🎯 DartStream
           </h1>
@@ -57,7 +57,7 @@ function GameSetup({ onGameStart }) {
   if (currentStep === 'players') {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="glass-container max-w-2xl w-full p-8 animate-fade-in">
+        <div className="glass-container max-w-md w-full p-8 animate-fade-in">
           <h2 className="text-4xl font-black mb-6 text-white text-center">
             👥 Player Names
           </h2>
@@ -113,7 +113,7 @@ function GameSetup({ onGameStart }) {
   if (currentStep === 'settings') {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="glass-container max-w-4xl w-full p-8 animate-fade-in overflow-y-auto max-h-screen">
+        <div className="glass-container max-w-md w-full p-8 animate-fade-in overflow-y-auto max-h-screen">
           <h2 className="text-4xl font-black mb-6 text-white text-center">
             ⚙️ Game Settings
           </h2>
@@ -302,7 +302,7 @@ function GameSetup({ onGameStart }) {
   if (currentStep === 'confirm') {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="glass-container max-w-2xl w-full p-8 animate-fade-in">
+        <div className="glass-container max-w-md w-full p-8 animate-fade-in">
           <h2 className="text-4xl font-black mb-6 text-white text-center">
             ✅ Confirm Settings
           </h2>
