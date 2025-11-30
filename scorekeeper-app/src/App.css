@@ -1,30 +1,29 @@
-/* App.css - Premium Modern UI */
+/* App.css - Professional Dark Theme */
 
-/* Animated Background */
+/* Dark Blue Gradient Background - Matching Landing Page */
 #root {
   width: 100%;
   height: 100vh;
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
-}
-
-@keyframes gradientShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 }
 
 /* Glass Morphism Container */
 .glass-container {
-  background: rgba(255, 255, 255, 0.1);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  background: rgba(0, 0, 0, 0.4);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 2px solid #334155;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+.glass-container:hover {
+  border-color: #facc15;
+  box-shadow: 0 10px 30px rgba(250, 204, 21, 0.2);
 }
 
 /* Premium Button Styles */
