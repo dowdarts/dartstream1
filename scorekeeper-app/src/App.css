@@ -8,6 +8,18 @@
   padding: 0;
   overflow: hidden;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Main App Container - 40% Width Centered */
+#root > div {
+  width: 40%;
+  max-width: 600px;
+  min-width: 320px;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 /* Glass Morphism Container */
